@@ -37,7 +37,6 @@ func GetCertificates(config config.Config, domainName string) (*certificate.Reso
 	fmt.Println("+++")
 	fmt.Println(domainName)
 
-
 	privateKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
 	if err != nil {
 		return &certificate.Resource{}, err

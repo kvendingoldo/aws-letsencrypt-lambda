@@ -2,12 +2,14 @@ package lambda
 
 import (
 	"context"
+	"crypto/x509"
 	"errors"
 	"fmt"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/acm"
 	"github.com/aws/aws-sdk-go-v2/service/acm/types"
 	acmTypes "github.com/aws/aws-sdk-go-v2/service/acm/types"
+	"github.com/go-acme/lego/v4/certificate"
 	"github.com/kvendingoldo/aws-letsencrypt-lambda/internal/cloud"
 	"github.com/kvendingoldo/aws-letsencrypt-lambda/internal/config"
 	"github.com/kvendingoldo/aws-letsencrypt-lambda/internal/utils"
@@ -17,9 +19,9 @@ import (
 )
 
 func getCertificateByDomainFromSlice(domain string, certificates *acm.ListCertificatesOutput) (acmTypes.CertificateSummary, error) {
-	for _, certificate := range certificates.CertificateSummaryList {
-		if domain == *certificate.DomainName {
-			return certificate, nil
+	for _, crt := range certificates.CertificateSummaryList {
+		if domain == *crt.DomainName {
+			return crt, nil
 		}
 	}
 
@@ -36,12 +38,33 @@ func showCertificateInfo(certificate acmTypes.CertificateDetail) {
 	log.Infof("Certificate valid untill %v (%v days left)", notAfterDate, certificateDaysLeft)
 }
 
-func reimportCertificate(arn *string, certificate, privateKey []byte) error {
+func importCertificate(ctx context.Context, client *cloud.Client, arn *string, tlsCertificates *certificate.Resource) error {
+	fmt.Println("===")
+	fmt.Println(tlsCertificates)
+	fmt.Println("===")
+	fmt.Println(string(tlsCertificates.Certificate))
+	fmt.Println("===")
+	fmt.Println(string(tlsCertificates.PrivateKey))
+
+	crts, err := x509.ParseCertificates(tlsCertificates.Certificate)
+	if err != nil {
+		return err
+	}
+
+	// TODO: delete this code
+	fmt.Println("===")
+	fmt.Println(string(tlsCertificates.Certificate))
+	fmt.Println("===")
+	fmt.Println(string(crts[0].Raw))
+	fmt.Println("===")
+	fmt.Println(string(tlsCertificates.PrivateKey))
+
+	// NOTE: The first one certificate in tlsCertificates.Certificate is certBody,
+	// the whole tlsCertificates.Certificate is certChain
 	params := &acm.ImportCertificateInput{
-		CertificateArn:   arn,
-		Certificate:      certificate,
-		PrivateKey:       privateKey,
-		CertificateChain: []byte{},
+		Certificate:      crts[0].Raw,
+		PrivateKey:       tlsCertificates.PrivateKey,
+		CertificateChain: tlsCertificates.Certificate,
 		Tags: []types.Tag{
 			{
 				Key:   aws.String("issue-date"),
@@ -50,8 +73,18 @@ func reimportCertificate(arn *string, certificate, privateKey []byte) error {
 		},
 	}
 
+	if arn != nil {
+		params.CertificateArn = arn
+	}
+
+	output, err := client.ACMClient.ImportCertificate(ctx, params)
+	if err != nil {
+		return err
+	}
+
+	// todo: useless prints
 	fmt.Println(params)
-	//output, _ := client.ACMClient.ImportCertificate(ctx, params)
+	fmt.Println(output)
 	return nil
 }
 
@@ -73,15 +106,7 @@ func processCertificate(ctx context.Context, config config.Config, client *cloud
 			return err
 		}
 
-		// TODO: useless code, delete it
-		fmt.Println("=====")
-		fmt.Println(string(tlsCertificates.Certificate))
-		fmt.Println("=====")
-		fmt.Println(string(tlsCertificates.IssuerCertificate))
-		fmt.Println("=====")
-		fmt.Println(string(tlsCertificates.PrivateKey))
-
-		err = reimportCertificate(certificate.CertificateArn, tlsCertificates.Certificate, tlsCertificates.PrivateKey)
+		err = importCertificate(ctx, client, certificate.CertificateArn, tlsCertificates)
 		if err != nil {
 			return err
 		}
@@ -89,43 +114,6 @@ func processCertificate(ctx context.Context, config config.Config, client *cloud
 		log.Infof("No re-import needed. It has to be done 10 days before expiration")
 	}
 
-	return nil
-}
-
-func createCertificate(ctx context.Context, config config.Config, client *cloud.Client, domainName string) error {
-	tlsCertificates, err := utils.GetCertificates(config, domainName)
-	if err != nil {
-		return err
-	}
-
-	// TODO: useless code, delete it
-	fmt.Println("=====")
-	fmt.Println(string(tlsCertificates.Certificate))
-	fmt.Println("=====")
-	fmt.Println(string(tlsCertificates.IssuerCertificate))
-	fmt.Println("=====")
-	fmt.Println(string(tlsCertificates.PrivateKey))
-
-	params := &acm.ImportCertificateInput{
-		Certificate:      tlsCertificates.Certificate,
-		PrivateKey:       tlsCertificates.PrivateKey,
-		CertificateChain: []byte{},
-		Tags: []types.Tag{
-			{
-				Key:   aws.String("issue-date"),
-				Value: aws.String(time.Now().String()),
-			},
-		},
-	}
-
-	output, err := client.ACMClient.ImportCertificate(ctx, params)
-	if err != nil {
-		return err
-	}
-
-	// todo: useless prints
-	fmt.Println(params)
-	fmt.Println(output)
 	return nil
 }
 
@@ -149,25 +137,34 @@ func Execute(config config.Config) {
 	}
 
 	if config.DomainOnly {
-		certificate, err := getCertificateByDomainFromSlice(config.DomainName, certificates)
+		crt, err := getCertificateByDomainFromSlice(config.DomainName, certificates)
 		if err != nil {
 			log.Warn("Certificate not found; Trying to create ...")
 
-			err := createCertificate(ctx, config, client, config.DomainName)
+			tlsCertificates, err := utils.GetCertificates(config, config.DomainName)
 			if err != nil {
-				log.Error(fmt.Sprintf("Failed to proccess certificate"), "error", err)
+				log.Error("Failed to issue certificate")
+				log.Error("error", err)
 				os.Exit(1)
 			}
-		} else {
-			err := processCertificate(ctx, config, client, certificate)
+
+			err = importCertificate(ctx, client, nil, tlsCertificates)
 			if err != nil {
-				log.Error(fmt.Sprintf("Failed to proccess certificate"), "error", err)
+				log.Error("Failed to import certificate")
+				log.Error("error", err)
+				os.Exit(1)
+			}
+
+		} else {
+			err := processCertificate(ctx, config, client, crt)
+			if err != nil {
+				log.Error(fmt.Sprintf("Failed to proccess certificate\n"), "error", err)
 				os.Exit(1)
 			}
 		}
 	} else {
-		for _, certificate := range certificates.CertificateSummaryList {
-			err := processCertificate(ctx, config, client, certificate)
+		for _, crt := range certificates.CertificateSummaryList {
+			err := processCertificate(ctx, config, client, crt)
 			if err != nil {
 				log.Error(fmt.Sprintf("Failed to proccess certificate"), "error", err)
 				os.Exit(1)
