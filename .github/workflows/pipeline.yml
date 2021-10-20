@@ -47,8 +47,8 @@ jobs:
         with:
           push: true
           tags: |
-            ${{ env.registry_url }}/${{ image_repo }}:latest
-            ${{ env.registry_url }}/${{ image_repo }}:${{ steps.set_version.outputs.safe_version }}
+            ${{ env.registry_url }}/${{ env.image_repo }}:latest
+            ${{ env.registry_url }}/${{ env.image_repo }}:${{ steps.set_version.outputs.safe_version }}
       -
         name: Print image version
         run: echo ${{ steps.set_version.outputs.safe_version }}
