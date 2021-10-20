@@ -2,7 +2,6 @@ package lambda
 
 import (
 	"context"
-	"crypto/x509"
 	"errors"
 	"fmt"
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -46,23 +45,18 @@ func importCertificate(ctx context.Context, client *cloud.Client, arn *string, t
 	fmt.Println("===")
 	fmt.Println(string(tlsCertificates.PrivateKey))
 
-	crts, err := x509.ParseCertificates(tlsCertificates.Certificate)
-	if err != nil {
-		return err
-	}
-
 	// TODO: delete this code
 	fmt.Println("===")
 	fmt.Println(string(tlsCertificates.Certificate))
 	fmt.Println("===")
-	fmt.Println(string(crts[0].Raw))
-	fmt.Println("===")
 	fmt.Println(string(tlsCertificates.PrivateKey))
+
+	crts := utils.SplitStringsByEmptyNewline(string(tlsCertificates.Certificate))
 
 	// NOTE: The first one certificate in tlsCertificates.Certificate is certBody,
 	// the whole tlsCertificates.Certificate is certChain
 	params := &acm.ImportCertificateInput{
-		Certificate:      crts[0].Raw,
+		Certificate:      []byte(crts[0]),
 		PrivateKey:       tlsCertificates.PrivateKey,
 		CertificateChain: tlsCertificates.Certificate,
 		Tags: []types.Tag{
