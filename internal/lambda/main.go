@@ -54,6 +54,10 @@ func importCertificate(ctx context.Context, client *cloud.Client, arn *string, t
 				Key:   aws.String("issue-date"),
 				Value: aws.String(time.Now().UTC().Format("2017.09.07 17:06:06")),
 			},
+			{
+				Key:   aws.String("aws-letsencrypt-lambda"),
+				Value: aws.String("true"),
+			},
 		}
 	}
 
@@ -71,6 +75,7 @@ func importCertificate(ctx context.Context, client *cloud.Client, arn *string, t
 }
 
 func processCertificate(ctx context.Context, config config.Config, client *cloud.Client, certificate acmTypes.CertificateSummary) error {
+	// TODO work only with certs with suitable tag
 	info, _ := client.ACMClient.DescribeCertificate(
 		ctx,
 		&acm.DescribeCertificateInput{
