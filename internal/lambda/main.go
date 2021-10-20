@@ -37,34 +37,24 @@ func showCertificateInfo(certificate acmTypes.CertificateDetail) {
 	log.Infof("Certificate valid untill %v (%v days left)", notAfterDate, certificateDaysLeft)
 }
 
-func importCertificate(ctx context.Context, client *cloud.Client, arn *string, tlsCertificates *certificate.Resource) error {
-	fmt.Println("===")
-	fmt.Println(tlsCertificates)
-	fmt.Println("===")
-	fmt.Println(string(tlsCertificates.Certificate))
-	fmt.Println("===")
-	fmt.Println(string(tlsCertificates.PrivateKey))
-
-	// TODO: delete this code
-	fmt.Println("===")
-	fmt.Println(string(tlsCertificates.Certificate))
-	fmt.Println("===")
-	fmt.Println(string(tlsCertificates.PrivateKey))
-
-	crts := utils.SplitStringsByEmptyNewline(string(tlsCertificates.Certificate))
-
+func importCertificate(ctx context.Context, client *cloud.Client, arn *string, tlsCertificates *certificate.Resource, reimport bool) error {
 	// NOTE: The first one certificate in tlsCertificates.Certificate is certBody,
 	// the whole tlsCertificates.Certificate is certChain
+	crts := utils.SplitStringsByEmptyNewline(string(tlsCertificates.Certificate))
+
 	params := &acm.ImportCertificateInput{
 		Certificate:      []byte(crts[0]),
 		PrivateKey:       tlsCertificates.PrivateKey,
 		CertificateChain: tlsCertificates.Certificate,
-		Tags: []types.Tag{
+	}
+
+	if !reimport {
+		params.Tags = []types.Tag{
 			{
 				Key:   aws.String("issue-date"),
-				Value: aws.String(time.Now().String()),
+				Value: aws.String(time.Now().UTC().Format("2017.09.07 17:06:06")),
 			},
-		},
+		}
 	}
 
 	if arn != nil {
@@ -76,9 +66,7 @@ func importCertificate(ctx context.Context, client *cloud.Client, arn *string, t
 		return err
 	}
 
-	// todo: useless prints
-	fmt.Println(params)
-	fmt.Println(output)
+	log.Infof("Certificate has been sucessefully imported. Arn is %v", *output.CertificateArn)
 	return nil
 }
 
@@ -96,11 +84,10 @@ func processCertificate(ctx context.Context, config config.Config, client *cloud
 	if certificateDaysLeft <= config.ReImportThreshold {
 		tlsCertificates, err := utils.GetCertificates(config, *info.Certificate.DomainName)
 		if err != nil {
-			fmt.Println(err)
 			return err
 		}
 
-		err = importCertificate(ctx, client, certificate.CertificateArn, tlsCertificates)
+		err = importCertificate(ctx, client, certificate.CertificateArn, tlsCertificates, true)
 		if err != nil {
 			return err
 		}
@@ -133,7 +120,7 @@ func Execute(config config.Config) {
 	if config.DomainOnly {
 		crt, err := getCertificateByDomainFromSlice(config.DomainName, certificates)
 		if err != nil {
-			log.Warn("Certificate not found; Trying to create ...")
+			log.Warnf("Certificate not found for %v domain; Trying to create ...", config.DomainName)
 
 			tlsCertificates, err := utils.GetCertificates(config, config.DomainName)
 			if err != nil {
@@ -142,7 +129,7 @@ func Execute(config config.Config) {
 				os.Exit(1)
 			}
 
-			err = importCertificate(ctx, client, nil, tlsCertificates)
+			err = importCertificate(ctx, client, nil, tlsCertificates, false)
 			if err != nil {
 				log.Error("Failed to import certificate")
 				log.Error("error", err)
@@ -150,6 +137,7 @@ func Execute(config config.Config) {
 			}
 
 		} else {
+			log.Infof("Certificate found, arn is %v. Trying to renew ...", *crt.CertificateArn)
 			err := processCertificate(ctx, config, client, crt)
 			if err != nil {
 				log.Error(fmt.Sprintf("Failed to proccess certificate\n"), "error", err)

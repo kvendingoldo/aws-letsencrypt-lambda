@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"github.com/go-acme/lego/providers/dns/route53"
 	"github.com/kvendingoldo/aws-letsencrypt-lambda/internal/config"
-	"log"
+	log "github.com/sirupsen/logrus"
 	"time"
 
 	"github.com/go-acme/lego/v4/certcrypto"
@@ -34,8 +34,7 @@ func (u *user) GetPrivateKey() crypto.PrivateKey {
 }
 
 func GetCertificates(config config.Config, domainName string) (*certificate.Resource, error) {
-	fmt.Println("+++")
-	fmt.Println(domainName)
+	log.Infof("Try to get certificate for %v domain", domainName)
 
 	privateKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
 	if err != nil {

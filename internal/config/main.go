@@ -11,7 +11,6 @@ type Config struct {
 	Region            string
 	DomainName        string
 	DomainOnly        bool
-	DryRun            bool
 	Mode              string
 	ReImportThreshold int
 	AcmeUrl           string
@@ -55,19 +54,6 @@ func New() *Config {
 		config.DomainName = domain
 	}
 
-	// TODO: delete it
-	if dryRunEnv := getEnv("DRY_RUN", ""); dryRunEnv == "" {
-		log.Warnf("Environment variable 'DRY_RUN' is empty; Default value 'false' will be used")
-		config.DryRun = false
-	} else {
-		dryRun, err := strconv.ParseBool(dryRunEnv)
-		if err != nil {
-			log.Error(fmt.Sprintf("Could not parse DRY_RUN"), "error", err)
-			os.Exit(1)
-		}
-		config.DryRun = dryRun
-	}
-
 	if mode := getEnv("MODE", "local"); mode == "local" {
 		log.Infof("Environment variable 'MODE' is empty. Default value %v will be used", mode)
 		config.Mode = mode
@@ -78,13 +64,13 @@ func New() *Config {
 		os.Exit(1)
 	}
 
-	if useProdUrlEnv := getEnv("USE_PROD_URL", ""); useProdUrlEnv == "" {
-		log.Warnf("Environment variable 'USE_PROD_URL' is empty; Default value 'false' will be used")
+	if useProdUrlEnv := getEnv("USE_ACME_PROD_URL", ""); useProdUrlEnv == "" {
+		log.Warnf("Environment variable 'USE_ACME_PROD_URL' is empty; Default value 'false' will be used")
 		config.AcmeUrl = "https://acme-staging-v02.api.letsencrypt.org/directory"
 	} else {
 		useProdUrl, err := strconv.ParseBool(useProdUrlEnv)
 		if err != nil {
-			log.Error(fmt.Sprintf("Could not parse USE_PROD_URL"), "error", err)
+			log.Error(fmt.Sprintf("Could not parse 'USE_ACME_PROD_URL' variable'"), "error", err)
 			os.Exit(1)
 		}
 		if useProdUrl {
