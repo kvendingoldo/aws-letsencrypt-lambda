@@ -11,7 +11,7 @@ WORKDIR ${GOPATH}/src/github.com/kvendingoldo/aws-letsencrypt-lambda
 RUN go get ./
 RUN go build -ldflags="-s -w" -o lambda .
 
-FROM scratch
+FROM gcr.io/distroless/static:nonroot
 COPY --from=builder go/src/github.com/kvendingoldo/aws-letsencrypt-lambda/lambda /app/
 WORKDIR /app
 ENTRYPOINT ["/app/lambda"]
