@@ -28,7 +28,7 @@ variable "security_group_ids" {
 variable "description" {
   type        = string
   description = "Lambda description"
-  default = ""
+  default     = ""
 }
 variable "image_uri" {
   type        = string
@@ -41,13 +41,28 @@ variable "timeout" {
 }
 variable "memory_size" {
   type        = string
-  description = "The memory in Gb that the function can use"
+  description = "The memory in Mb that the function can use"
   default     = 128
 }
 variable "environ" {
-  description = "Environment parameters passed to the Lambda function"
+  description = "Environment variables passed to the Lambda function"
   type        = map(string)
   default     = {}
+}
+
+#
+# Lambda events
+#
+variable "events" {
+  type        = list(object({
+    DomainName : string,
+    AcmeUrl : string,
+    AcmeEmail : string
+    ReImportThreshold : number,
+    IssueType : string
+  }))
+  description = "List of events for Lambda function (each event contains info about one certificate)"
+  default     = []
 }
 
 #
@@ -55,10 +70,19 @@ variable "environ" {
 #
 variable "cron_enabled" {
   type    = bool
-  default = false
+  default = true
 }
 variable "cron_schedule" {
   type        = string
   description = "The schedule expression for how often the Lambda function runs"
   default     = "rate(24 hours)"
+}
+
+#
+# Logging
+#
+variable "retention" {
+  type        = number
+  description = "Number of days to retain log events in the specified log group"
+  default     = 7
 }
