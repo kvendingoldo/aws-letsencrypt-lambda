@@ -51,10 +51,6 @@ func importCertificate(ctx context.Context, client *cloud.Client, arn *string, t
 	if !reimport {
 		params.Tags = []types.Tag{
 			{
-				Key:   aws.String("issue-date"),
-				Value: aws.String(time.Now().UTC().Format("2017.09.07 17:06:06")),
-			},
-			{
 				Key:   aws.String("aws-letsencrypt-lambda"),
 				Value: aws.String("true"),
 			},
@@ -86,7 +82,11 @@ func processCertificate(ctx context.Context, config config.Config, client *cloud
 	showCertificateInfo(*info.Certificate)
 	certificateDaysLeft := int(info.Certificate.NotAfter.Sub(time.Now()).Hours() / 24)
 
-	if certificateDaysLeft <= config.ReImportThreshold {
+	if (certificateDaysLeft <= config.ReImportThreshold) || (config.IssueType == "force") {
+		if config.IssueType == "force" {
+			log.Info("IssueType == force, certificate will be recreated")
+		}
+
 		tlsCertificates, err := utils.GetCertificates(config, *info.Certificate.DomainName)
 		if err != nil {
 			return err
@@ -122,40 +122,31 @@ func Execute(config config.Config) {
 		os.Exit(1)
 	}
 
-	if config.DomainOnly {
-		crt, err := getCertificateByDomainFromSlice(config.DomainName, certificates)
+	crt, err := getCertificateByDomainFromSlice(config.DomainName, certificates)
+	if err != nil {
+		log.Warnf("Certificate not found for %v domain; Trying to create ...", config.DomainName)
+
+		tlsCertificates, err := utils.GetCertificates(config, config.DomainName)
 		if err != nil {
-			log.Warnf("Certificate not found for %v domain; Trying to create ...", config.DomainName)
-
-			tlsCertificates, err := utils.GetCertificates(config, config.DomainName)
-			if err != nil {
-				log.Error("Failed to issue certificate")
-				log.Error("error", err)
-				os.Exit(1)
-			}
-
-			err = importCertificate(ctx, client, nil, tlsCertificates, false)
-			if err != nil {
-				log.Error("Failed to import certificate")
-				log.Error("error", err)
-				os.Exit(1)
-			}
-
-		} else {
-			log.Infof("Certificate found, arn is %v. Trying to renew ...", *crt.CertificateArn)
-			err := processCertificate(ctx, config, client, crt)
-			if err != nil {
-				log.Error(fmt.Sprintf("Failed to proccess certificate\n"), "error", err)
-				os.Exit(1)
-			}
+			log.Error("Failed to issue certificate")
+			log.Error("error", err)
+			os.Exit(1)
 		}
+
+		err = importCertificate(ctx, client, nil, tlsCertificates, false)
+		if err != nil {
+			log.Error("Failed to import certificate")
+			log.Error("error", err)
+			os.Exit(1)
+		}
+
 	} else {
-		for _, crt := range certificates.CertificateSummaryList {
-			err := processCertificate(ctx, config, client, crt)
-			if err != nil {
-				log.Error(fmt.Sprintf("Failed to proccess certificate"), "error", err)
-				os.Exit(1)
-			}
+		log.Infof("Certificate found, arn is %v. Trying to renew ...", *crt.CertificateArn)
+		err := processCertificate(ctx, config, client, crt)
+		if err != nil {
+			log.Error(fmt.Sprintf("Failed to proccess certificate\n"), "error", err)
+			os.Exit(1)
 		}
 	}
+
 }

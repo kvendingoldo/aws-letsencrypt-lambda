@@ -6,31 +6,32 @@ import (
 	awsLambda "github.com/aws/aws-lambda-go/lambda"
 	cfg "github.com/kvendingoldo/aws-letsencrypt-lambda/internal/config"
 	"github.com/kvendingoldo/aws-letsencrypt-lambda/internal/lambda"
+	"github.com/kvendingoldo/aws-letsencrypt-lambda/internal/types"
+	log "github.com/sirupsen/logrus"
+	"os"
 )
 
-type Response struct {
-	Message string `json:"Answer:"`
-}
-
-type Event struct {
-	// TODO: add options here
-	Name string `json:"name"`
-}
-
-func Handler(ctx context.Context, event Event) (Response, error) {
-	fmt.Println("Hello from lambda")
-	// TODO: find a way to pass config from main()
-	config := cfg.New()
+func Handler(ctx context.Context, event types.Event) (types.Response, error) {
+	log.Infof("Handling labmda for event: %v", event)
+	config := cfg.New(event)
 	lambda.Execute(*config)
-	return Response{Message: fmt.Sprintf("Hello %v\n", event.Name)}, nil
+	return types.Response{Message: fmt.Sprintf("Labmda has been completed for %v\n", event.ID)}, nil
 }
 
 func main() {
-	config := cfg.New()
+	log.Info("Starting lambda execution ...")
+	if mode, ok := os.LookupEnv("MODE"); ok {
+		if !(mode == "local" || mode == "cloud") {
+			log.Errorf("Environment variable 'MODE' has unknown value '%v'. Value should be 'local' or 'cloud'", mode)
+			os.Exit(1)
+		}
 
-	if config.Mode == "local" {
-		lambda.Execute(*config)
-	} else if config.Mode == "cloud" {
-		awsLambda.Start(Handler)
+		if mode == "local" {
+			config := cfg.New(nil)
+			lambda.Execute(*config)
+		} else if mode == "cloud" {
+			awsLambda.Start(Handler)
+		}
 	}
+	log.Info("Lambda has completed")
 }
