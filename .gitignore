@@ -17,3 +17,6 @@
 .idea
 misc/
 .DS_Store
+files/terraform/terraform.tfstate*
+files/terraform/.terraform.*
+files/terraform/.terraform
