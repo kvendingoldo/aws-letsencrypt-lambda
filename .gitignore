@@ -17,7 +17,6 @@
 .idea
 misc/
 .DS_Store
-files/terraform/.zip/
-files/terraform/terraform.tfstate
-files/terraform/terraform.tfstate.backup
+files/terraform/terraform.tfstate*
 files/terraform/.terraform.*
+files/terraform/.terraform

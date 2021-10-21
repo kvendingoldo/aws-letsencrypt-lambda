@@ -1,6 +1,6 @@
 resource "aws_iam_role" "main" {
   name               = var.blank_name
-  description        = "TODO"
+  description        = "IAM role for for Lambda ${var.blank_name}"
   tags               = var.tags
   assume_role_policy = <<-POLICY
   {
@@ -24,7 +24,7 @@ resource "aws_iam_policy" "logging" {
   path        = "/"
   description = "IAM policy for logging from a lambda"
 
-  policy = <<EOF
+  policy = <<-POLICY
 {
   "Version": "2012-10-17",
   "Statement": [
@@ -39,7 +39,7 @@ resource "aws_iam_policy" "logging" {
     }
   ]
 }
-EOF
+POLICY
 }
 resource "aws_iam_role_policy_attachment" "logs" {
   role       = aws_iam_role.main.name
@@ -51,7 +51,7 @@ resource "aws_iam_policy" "acm" {
   path        = "/"
   description = "IAM policy for work with ACM from a lambda"
 
-  policy = <<EOF
+  policy = <<-POLICY
 {
   "Version": "2012-10-17",
   "Statement": [
@@ -69,24 +69,16 @@ resource "aws_iam_policy" "acm" {
     }
   ]
 }
-EOF
+POLICY
 }
 resource "aws_iam_role_policy_attachment" "acm" {
   role       = aws_iam_role.main.name
   policy_arn = aws_iam_policy.acm.arn
 }
 
-#
-#resource "aws_iam_role_policy" "lambda_policy" {
-#  role = aws_iam_role.iam_for_lambda.id
-#  name = "policy"
-#
-#  policy = var.lambda_role_policy
-#}
-#
-#resource "aws_iam_role_policy_attachment" "vpc_permissions" {
-#  role       = aws_iam_role.iam_for_lambda.name
-#  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"
-#
-#  count = length(var.subnet_ids) != 0 ? 1 : 0
-#}
+
+resource "aws_iam_role_policy_attachment" "vpc_permissions" {
+  count      = length(var.subnet_ids) != 0 ? 1 : 0
+  role       = aws_iam_role.main.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"
+}
