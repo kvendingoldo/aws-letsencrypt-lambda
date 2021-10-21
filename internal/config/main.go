@@ -77,7 +77,6 @@ func New(eventRaw interface{}) *Config {
 		config.ReImportThreshold = value
 	}
 
-	// TODO: if not try to process expired certs
 	if getFromEvent && event.ReImportThreshold != 0 {
 		config.ReImportThreshold = event.ReImportThreshold
 	}

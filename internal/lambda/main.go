@@ -51,7 +51,7 @@ func importCertificate(ctx context.Context, client *cloud.Client, arn *string, t
 	if !reimport {
 		params.Tags = []types.Tag{
 			{
-				Key:   aws.String("aws-letsencrypt-lambda"),
+				Key:   aws.String(lambdaAwsTag),
 				Value: aws.String("true"),
 			},
 		}
@@ -71,18 +71,42 @@ func importCertificate(ctx context.Context, client *cloud.Client, arn *string, t
 }
 
 func processCertificate(ctx context.Context, config config.Config, client *cloud.Client, certificate acmTypes.CertificateSummary) error {
-	// TODO work only with certs with suitable tag
-	info, _ := client.ACMClient.DescribeCertificate(
+	tags, err := client.ACMClient.ListTagsForCertificate(
+		ctx,
+		&acm.ListTagsForCertificateInput{
+			CertificateArn: certificate.CertificateArn,
+		},
+	)
+	if err != nil {
+		return err
+	}
+
+	isAutomationEnabled := false
+	for _, tag := range tags.Tags {
+		if *tag.Key == lambdaAwsTag {
+			isAutomationEnabled = true
+			break
+		}
+	}
+
+	if !isAutomationEnabled {
+		log.Infof("Certificate '%v' is out of the scope of Lambda automation. Re-create it via Lambda or add '%v' tag to certificate", *certificate.CertificateArn, lambdaAwsTag)
+	}
+
+	info, err := client.ACMClient.DescribeCertificate(
 		ctx,
 		&acm.DescribeCertificateInput{
 			CertificateArn: certificate.CertificateArn,
 		},
 	)
+	if err != nil {
+		return err
+	}
 
 	showCertificateInfo(*info.Certificate)
 	certificateDaysLeft := int(info.Certificate.NotAfter.Sub(time.Now()).Hours() / 24)
 
-	if (certificateDaysLeft <= config.ReImportThreshold) || (config.IssueType == "force") {
+	if (certificateDaysLeft <= config.ReImportThreshold) || (config.IssueType == "force") || ((*info.Certificate).Status == acmTypes.CertificateStatusExpired) {
 		if config.IssueType == "force" {
 			log.Info("IssueType == force, certificate will be recreated")
 		}

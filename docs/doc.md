@@ -1,4 +1,4 @@
-## How to use it
+## How to use it within AWS
 
 1. Lambda image should be pulled from docker hub and pushed into your personal ECR repository; AWS Lambda is not able to
    work with any other docker registry except ECR.
@@ -40,6 +40,22 @@ events     = [
   "reimport_threshold": 10,
   "issue_type": "default"
 }
+```
+
+## How to use it locally
+1. Set the following environment variables (do not forget to change placeholders)
+```shell
+export AWS_REGION=<REGION>
+export MODE=local
+export DOMAIN_NAME=<TEST_DOMAIN_4>
+export ACME_URL="stage"
+export ACME_EMAIL=<TEST_EMAIL_4>
+export REIMPORT_THRESHOLD=10
+export ISSUE_TYPE="default"
+```
+2. Run lambda locally
+```sh
+go run main.go
 ```
 
 ## Environment variables
