@@ -15,8 +15,8 @@
 # vendor/
 
 .idea
-misc/
 .DS_Store
-files/terraform/terraform.tfstate*
-files/terraform/.terraform.*
-files/terraform/.terraform
+files/terraform/module/terraform.tfstate*
+files/terraform/module/.terraform.*
+files/terraform/module/.terraform
+files/terraform/misc
