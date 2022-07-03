@@ -39,7 +39,7 @@ resource "aws_cloudwatch_log_group" "main" {
 resource "aws_cloudwatch_event_rule" "schedule" {
   for_each = local.events
 
-  name        = format("%s_%s_schedule", var.blank_name, each.key)
+  name        = format("%s_%s", var.blank_name, each.key)
   description = "This event will run according to a schedule for Lambda ${var.blank_name}"
   tags        = var.tags
 
