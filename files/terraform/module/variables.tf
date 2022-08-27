@@ -51,16 +51,24 @@ variable "environ" {
 }
 
 #
+# IAM configuration
+#
+variable "create_iam_role" {
+  description = "Create IAM role with a defined name that permits Lambda to work with Route53 & ACM"
+  type        = bool
+  default     = false
+}
+variable "iam_role_arn" {
+  description = "The ARN for the IAM role that permits Lambda to work with Route53 & ACM. Must be specified if monitoring_interval is non-zero"
+  type        = string
+  default     = null
+}
+
+#
 # Lambda events
 #
 variable "events" {
-  type        = list(object({
-    DomainName : string,
-    AcmeUrl : string,
-    AcmeEmail : string
-    ReImportThreshold : number,
-    IssueType : string
-  }))
+  type        = any
   description = "List of events for Lambda function (each event contains info about one certificate)"
   default     = []
 }

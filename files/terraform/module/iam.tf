@@ -1,4 +1,6 @@
 resource "aws_iam_role" "main" {
+  count = var.create_iam_role ? 1 : 0
+
   name               = var.blank_name
   description        = "IAM role for for Lambda ${var.blank_name}"
   tags               = var.tags
@@ -23,8 +25,8 @@ resource "aws_iam_role" "main" {
 # VPC permissions
 #
 resource "aws_iam_role_policy_attachment" "vpc_permissions" {
-  count      = length(var.subnet_ids) != 0 ? 1 : 0
-  role       = aws_iam_role.main.name
+  count      = (length(var.subnet_ids) != 0 && var.create_iam_role) ? 1 : 0
+  role       = aws_iam_role.main[0].name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"
 }
 
@@ -32,6 +34,8 @@ resource "aws_iam_role_policy_attachment" "vpc_permissions" {
 # Logging policy
 #
 resource "aws_iam_policy" "logging" {
+  count = var.create_iam_role ? 1 : 0
+
   name        = format("%s-%s", var.blank_name, "logging")
   path        = "/"
   description = "IAM policy for logging from a lambda"
@@ -54,14 +58,18 @@ resource "aws_iam_policy" "logging" {
 POLICY
 }
 resource "aws_iam_role_policy_attachment" "logging" {
-  role       = aws_iam_role.main.name
-  policy_arn = aws_iam_policy.logging.arn
+  count = var.create_iam_role ? 1 : 0
+
+  role       = aws_iam_role.main[0].name
+  policy_arn = aws_iam_policy.logging[0].arn
 }
 
 #
 # ACM policy
 #
 resource "aws_iam_policy" "acm" {
+  count = var.create_iam_role ? 1 : 0
+
   name        = format("%s-%s", var.blank_name, "acm")
   path        = "/"
   description = "IAM policy for working with ACM from a lambda"
@@ -87,14 +95,18 @@ resource "aws_iam_policy" "acm" {
 POLICY
 }
 resource "aws_iam_role_policy_attachment" "acm" {
-  role       = aws_iam_role.main.name
-  policy_arn = aws_iam_policy.acm.arn
+  count = var.create_iam_role ? 1 : 0
+
+  role       = aws_iam_role.main[0].name
+  policy_arn = aws_iam_policy.acm[0].arn
 }
 
 #
 # Route53 policy
 #
 resource "aws_iam_policy" "route53" {
+  count = var.create_iam_role ? 1 : 0
+
   name        = format("%s-%s", var.blank_name, "route53")
   path        = "/"
   description = "IAM policy for working with Route53 from a lambda"
@@ -118,8 +130,10 @@ resource "aws_iam_policy" "route53" {
 POLICY
 }
 resource "aws_iam_role_policy_attachment" "route53" {
-  role       = aws_iam_role.main.name
-  policy_arn = aws_iam_policy.route53.arn
+  count = var.create_iam_role ? 1 : 0
+
+  role       = aws_iam_role.main[0].name
+  policy_arn = aws_iam_policy.route53[0].arn
 }
 
 

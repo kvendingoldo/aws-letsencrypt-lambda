@@ -9,22 +9,28 @@ import (
 )
 
 type Config struct {
-	Region            string
+	AWSRegion string
+
+	ACMRegion     string
+	Route53Region string
+
 	DomainName        string
-	ReImportThreshold int
+	ReImportThreshold int64
 	AcmeEmail         string
-	AcmeUrl           string
+	AcmeURL           string
 	IssueType         string
 }
 
+//nolint:unparam
 func getEnv(key, fallback string) string {
 	if value, ok := os.LookupEnv(key); ok {
 		return value
 	}
+
 	return fallback
 }
 
-func New(eventRaw interface{}) *Config {
+func New(eventRaw interface{}) (*Config, error) {
 	var config = Config{}
 	var getFromEvent bool
 	var event types.Event
@@ -37,112 +43,128 @@ func New(eventRaw interface{}) *Config {
 		getFromEvent = false
 	}
 
-	// Process Region
-	if region := getEnv("AWS_REGION", ""); region == "" {
-		log.Errorf("Required environment variable 'AWS_REGION' is empty. Please, specify", region)
-		os.Exit(1)
+	// Process AWSRegion
+	if awsRegion := getEnv("AWS_REGION", ""); awsRegion != "" {
+		config.AWSRegion = awsRegion
 	} else {
-		config.Region = region
+		log.Warn("Environment variable AWS_REGION is empty")
+	}
+	if getFromEvent {
+		if event.AWSRegion != "" {
+			config.AWSRegion = event.AWSRegion
+		} else {
+			log.Warn("Event contains empty awsRegion variable")
+		}
+	}
+	if config.AWSRegion == "" {
+		return nil, fmt.Errorf("AWSRegion is empty; Configure it via 'AWS_REGION' env variable OR pass in event body")
 	}
 
 	// Process DomainName
-	domain := getEnv("DOMAIN_NAME", "")
-	if domain == "" {
-		log.Warnf("Environment variable 'DOMAIN_NAME' is empty")
-	} else {
+	if domain := getEnv("DOMAIN_NAME", ""); domain != "" {
 		config.DomainName = domain
+	} else {
+		log.Warn("Environment variable 'DOMAIN_NAME' is empty")
 	}
-
 	if getFromEvent {
 		if event.DomainName == "" {
-			log.Warnf("Event contains empty DomainName")
-			if domain == "" {
-				log.Error("DomainName is empty; Configure it via 'DOMAIN_NAME' env variable OR pass in event body")
-				os.Exit(1)
-			}
+			log.Warnf("Event contains empty domainName variable")
 		} else {
 			config.DomainName = event.DomainName
 		}
 	}
+	if event.DomainName == "" {
+		return nil, fmt.Errorf("DomainName is empty; Configure it via 'DOMAIN_NAME' env variable OR pass in event body")
+	}
 
 	// Process ReImportThreshold
 	if reimportThreshold := getEnv("REIMPORT_THRESHOLD", ""); reimportThreshold == "" {
-		log.Warnf("Environment variable 'REIMPORT_THRESHOLD' is empty")
+		log.Warn("Environment variable 'REIMPORT_THRESHOLD' is empty")
 	} else {
-		value, err := strconv.Atoi(reimportThreshold)
+		reimportThresholdValue, err := strconv.ParseInt(reimportThreshold, 10, 64)
 		if err != nil {
-			log.Error(fmt.Sprintf("Could not parse 'REIMPORT_THRESHOLD' variable'"), "error", err)
-			os.Exit(1)
+			//nolint:stylecheck
+			return nil, fmt.Errorf("Could not parse 'REIMPORT_THRESHOLD' variable'. Error: %w", err)
 		}
-		config.ReImportThreshold = value
+		config.ReImportThreshold = reimportThresholdValue
 	}
-
-	if getFromEvent && event.ReImportThreshold != 0 {
-		config.ReImportThreshold = event.ReImportThreshold
+	if getFromEvent {
+		if event.ReImportThreshold.Valid {
+			config.ReImportThreshold = event.ReImportThreshold.Int64
+		} else {
+			log.Warnf("Event contains empty OR invalid reImportThreshold")
+		}
 	}
-
 	if config.ReImportThreshold == 0 {
-		log.Error("ReImportThreshold == 0 ; Configure non-zero value via 'ReImportThreshold' env variable OR pass in event body")
-		os.Exit(1)
+		return nil, fmt.Errorf("ReImportThreshold == 0; Configure non-zero value via 'REIMPORT_THRESHOLD' env variable OR pass in event body")
 	}
 
 	// Process AcmeEmail
 	if acmeEmail := getEnv("ACME_EMAIL", ""); acmeEmail == "" {
-		log.Warnf("Environment variable 'ACME_EMAIL' is empty")
+		log.Warn("Environment variable 'ACME_EMAIL' is empty")
 	} else {
 		config.AcmeEmail = acmeEmail
 	}
-
-	if getFromEvent && event.AcmeEmail != "" {
-		config.AcmeEmail = event.AcmeEmail
+	if getFromEvent {
+		if event.AcmeEmail != "" {
+			config.AcmeEmail = event.AcmeEmail
+		} else {
+			log.Warn("Event contains empty acmeEmail")
+		}
 	}
-
 	if config.AcmeEmail == "" {
-		log.Errorf("AcmeEmail is empty; Configure it via 'ACME_EMAIL' env variable OR pass in event body")
-		os.Exit(1)
+		return nil, fmt.Errorf("AcmeEmail is empty; Configure it via 'ACME_EMAIL' env variable OR pass in event body")
 	}
 
-	// Process AcmeUrl
-	var acmeUrl string
-
-	if acmeUrlEnv := getEnv("ACME_URL", ""); acmeUrlEnv == "" {
-		log.Warnf("Environment variable 'ACME_URL' is empty")
+	// Process AcmeURL
+	var acmeURL string
+	if acmeURLEnv := getEnv("ACME_URL", ""); acmeURLEnv == "" {
+		log.Warn("Environment variable 'ACME_URL' is empty")
 	} else {
-		acmeUrl = acmeUrlEnv
+		acmeURL = acmeURLEnv
+	}
+	if getFromEvent {
+		if event.AcmeURL != "" {
+			acmeURL = event.AcmeURL
+		} else {
+			log.Warn("Event contains empty acmeUrl variable")
+		}
 	}
 
-	if getFromEvent && event.AcmeUrl != "" {
-		acmeUrl = event.AcmeUrl
-	}
-
-	switch acmeUrl {
+	switch acmeURL {
 	case "prod":
-		config.AcmeUrl = "https://acme-v02.api.letsencrypt.org/directory"
+		config.AcmeURL = "https://acme-v02.api.letsencrypt.org/directory"
 		log.Info("Lambda will use PROD ACME URL")
 	case "stage":
-		config.AcmeUrl = "https://acme-staging-v02.api.letsencrypt.org/directory"
+		config.AcmeURL = "https://acme-staging-v02.api.letsencrypt.org/directory"
 		log.Info("Lambda will use STAGING ACME URL; If you need to use PROD URL specify it via 'ACME_URL' or pass in event body")
 	default:
-		log.Errorf("Unkown value '%v' for acmeUrl; Check env var 'ACME_URL' or event body", acmeUrl)
-		os.Exit(1)
+		//nolint:stylecheck
+		return nil, fmt.Errorf("Unknown value '%v' for acmeUrl; Check env var 'ACME_URL' or event body; Valid values are: 'stage' or 'prod'", acmeURL)
 	}
 
 	// Process Force
 	if issueType := getEnv("ISSUE_TYPE", ""); issueType == "" {
-		log.Warnf("Environment variable 'ISSUE_TYPE' is empty; 'default' value will be used")
-		config.IssueType = "default"
+		log.Warnf("Environment variable 'ISSUE_TYPE' is empty")
+		config.IssueType = types.IssueTypeDefault
 	} else {
 		config.IssueType = issueType
 	}
-
-	if getFromEvent && event.IssueType != "" {
-		config.IssueType = event.IssueType
+	if getFromEvent {
+		if event.IssueType != "" {
+			config.IssueType = event.IssueType
+		} else {
+			log.Warn("Event contains empty issueType")
+		}
+	}
+	if config.IssueType == "" {
+		config.IssueType = types.IssueTypeDefault
+		log.Infof("IssueType is empty; '%s' value will be used", types.IssueTypeDefault)
+	}
+	if !(config.IssueType == types.IssueTypeDefault || config.IssueType == types.IssueTypeForce) {
+		//nolint:stylecheck
+		return nil, fmt.Errorf("Bad IssueType value '%v'. It should be '%s' or '%s'", config.IssueType, types.IssueTypeDefault, types.IssueTypeForce)
 	}
 
-	if !(config.IssueType == "default" || config.IssueType == "force") {
-		log.Errorf("Bad IssueType value (%v). It should be 'default' or 'force'", config.IssueType)
-		os.Exit(1)
-	}
-
-	return &config
+	return &config, nil
 }

@@ -10,18 +10,21 @@ import (
 type Client struct {
 	ACMClient     *acm.Client
 	Route53Client *route53.Client
-	Region        string
 }
 
-func New(ctx context.Context, region string) (*Client, error) {
-	cfg, err := config.LoadDefaultConfig(ctx, config.WithRegion(region))
+func New(ctx context.Context, route53Region, acmRegion string) (*Client, error) {
+	acmCfg, err := config.LoadDefaultConfig(ctx, config.WithRegion(acmRegion))
+	if err != nil {
+		return nil, err
+	}
+
+	route53Cfg, err := config.LoadDefaultConfig(ctx, config.WithRegion(route53Region))
 	if err != nil {
 		return nil, err
 	}
 
 	return &Client{
-		ACMClient:     acm.NewFromConfig(cfg),
-		Route53Client: route53.NewFromConfig(cfg),
-		Region:        region,
+		ACMClient:     acm.NewFromConfig(acmCfg),
+		Route53Client: route53.NewFromConfig(route53Cfg),
 	}, nil
 }

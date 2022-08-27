@@ -6,14 +6,12 @@ import (
 	"fmt"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/acm"
-	"github.com/aws/aws-sdk-go-v2/service/acm/types"
 	acmTypes "github.com/aws/aws-sdk-go-v2/service/acm/types"
 	"github.com/go-acme/lego/v4/certificate"
 	"github.com/kvendingoldo/aws-letsencrypt-lambda/internal/cloud"
 	"github.com/kvendingoldo/aws-letsencrypt-lambda/internal/config"
 	"github.com/kvendingoldo/aws-letsencrypt-lambda/internal/utils"
 	log "github.com/sirupsen/logrus"
-	"os"
 	"time"
 )
 
@@ -24,7 +22,7 @@ func getCertificateByDomainFromSlice(domain string, certificates *acm.ListCertif
 		}
 	}
 
-	return acmTypes.CertificateSummary{}, errors.New("Not found")
+	return acmTypes.CertificateSummary{}, errors.New("not found")
 }
 
 func showCertificateInfo(certificate acmTypes.CertificateDetail) {
@@ -34,7 +32,7 @@ func showCertificateInfo(certificate acmTypes.CertificateDetail) {
 
 	notAfterDate := certificate.NotAfter
 	certificateDaysLeft := int(notAfterDate.Sub(time.Now()).Hours() / 24)
-	log.Infof("Certificate valid untill %v (%v days left)", notAfterDate, certificateDaysLeft)
+	log.Infof("Certificate valid until %v (%v days left)", notAfterDate, certificateDaysLeft)
 }
 
 func importCertificate(ctx context.Context, client *cloud.Client, arn *string, tlsCertificates *certificate.Resource, reimport bool) error {
@@ -49,7 +47,7 @@ func importCertificate(ctx context.Context, client *cloud.Client, arn *string, t
 	}
 
 	if !reimport {
-		params.Tags = []types.Tag{
+		params.Tags = []acmTypes.Tag{
 			{
 				Key:   aws.String(lambdaAwsTag),
 				Value: aws.String("true"),
@@ -67,6 +65,7 @@ func importCertificate(ctx context.Context, client *cloud.Client, arn *string, t
 	}
 
 	log.Infof("Certificate has been sucessefully imported. Arn is %v", *output.CertificateArn)
+
 	return nil
 }
 
@@ -85,6 +84,7 @@ func processCertificate(ctx context.Context, config config.Config, client *cloud
 	for _, tag := range tags.Tags {
 		if *tag.Key == lambdaAwsTag {
 			isAutomationEnabled = true
+
 			break
 		}
 	}
@@ -104,8 +104,9 @@ func processCertificate(ctx context.Context, config config.Config, client *cloud
 	}
 
 	showCertificateInfo(*info.Certificate)
-	certificateDaysLeft := int(info.Certificate.NotAfter.Sub(time.Now()).Hours() / 24)
+	certificateDaysLeft := int64(info.Certificate.NotAfter.Sub(time.Now()).Hours() / 24)
 
+	//nolint:gocritic
 	if (certificateDaysLeft <= config.ReImportThreshold) || (config.IssueType == "force") || ((*info.Certificate).Status == acmTypes.CertificateStatusExpired) {
 		if config.IssueType == "force" {
 			log.Info("IssueType == force, certificate will be recreated")
@@ -127,14 +128,12 @@ func processCertificate(ctx context.Context, config config.Config, client *cloud
 	return nil
 }
 
-func Execute(config config.Config) {
-	client, err := cloud.New(context.TODO(), config.Region)
+func Execute(ctx context.Context, config config.Config) error {
+	client, err := cloud.New(ctx, config.ACMRegion, config.Route53Region)
 	if err != nil {
-		log.Error(fmt.Sprintf("Could not create AWS client"), "error", err)
-		os.Exit(1)
+		//nolint:stylecheck
+		return fmt.Errorf("Could not create AWS client. Error: %w", err)
 	}
-
-	ctx := context.TODO()
 
 	params := &acm.ListCertificatesInput{
 		CertificateStatuses: []acmTypes.CertificateStatus{acmTypes.CertificateStatusIssued},
@@ -142,8 +141,8 @@ func Execute(config config.Config) {
 	}
 	certificates, err := client.ACMClient.ListCertificates(ctx, params)
 	if err != nil {
-		log.Error(fmt.Sprintf("Could not get list of AWS certificates"), "error", err)
-		os.Exit(1)
+		//nolint:stylecheck
+		return fmt.Errorf("Could not get list of AWS certificates. Error: %w", err)
 	}
 
 	crt, err := getCertificateByDomainFromSlice(config.DomainName, certificates)
@@ -152,25 +151,23 @@ func Execute(config config.Config) {
 
 		tlsCertificates, err := utils.GetCertificates(config, config.DomainName)
 		if err != nil {
-			log.Error("Failed to issue certificate")
-			log.Error("error", err)
-			os.Exit(1)
+			//nolint:stylecheck
+			return fmt.Errorf("Failed to issue certificate. Error: %w", err)
 		}
 
 		err = importCertificate(ctx, client, nil, tlsCertificates, false)
 		if err != nil {
-			log.Error("Failed to import certificate")
-			log.Error("error", err)
-			os.Exit(1)
+			//nolint:stylecheck
+			return fmt.Errorf("Failed to import certificate. Error: %w", err)
 		}
-
 	} else {
 		log.Infof("Certificate found, arn is %v. Trying to renew ...", *crt.CertificateArn)
 		err := processCertificate(ctx, config, client, crt)
 		if err != nil {
-			log.Error(fmt.Sprintf("Failed to proccess certificate\n"), "error", err)
-			os.Exit(1)
+			//nolint:stylecheck
+			return fmt.Errorf("Failed to process certificate. Error: %w", err)
 		}
 	}
 
+	return nil
 }
