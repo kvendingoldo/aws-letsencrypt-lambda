@@ -9,7 +9,11 @@ import (
 )
 
 type Config struct {
-	Region            string
+	AWSRegion string
+
+	ACMRegion     string
+	Route53Region string
+
 	DomainName        string
 	ReImportThreshold int
 	AcmeEmail         string
@@ -37,12 +41,22 @@ func New(eventRaw interface{}) *Config {
 		getFromEvent = false
 	}
 
-	// Process Region
-	if region := getEnv("AWS_REGION", ""); region == "" {
-		log.Errorf("Required environment variable 'AWS_REGION' is empty. Please, specify", region)
-		os.Exit(1)
+	// Process AWSRegion
+	if awsRegion := getEnv("AWS_REGION", ""); awsRegion != "" {
+		config.AWSRegion = awsRegion
 	} else {
-		config.Region = region
+		log.Warn("Environment variable AWS_REGION is empty")
+	}
+	if getFromEvent {
+		if event.AWSRegion != "" {
+			config.AWSRegion = event.AWSRegion
+		} else {
+			log.Warn("Event contains empty awsRegion variable")
+		}
+	}
+	if config.AWSRegion == "" {
+		log.Error("awsRegion is empty; Configure it via 'AWS_REGION' env variable OR pass in event body")
+		os.Exit(1)
 	}
 
 	// Process DomainName
@@ -52,17 +66,16 @@ func New(eventRaw interface{}) *Config {
 	} else {
 		config.DomainName = domain
 	}
-
 	if getFromEvent {
 		if event.DomainName == "" {
 			log.Warnf("Event contains empty DomainName")
-			if domain == "" {
-				log.Error("DomainName is empty; Configure it via 'DOMAIN_NAME' env variable OR pass in event body")
-				os.Exit(1)
-			}
 		} else {
 			config.DomainName = event.DomainName
 		}
+	}
+	if domain == "" {
+		log.Error("DomainName is empty; Configure it via 'DOMAIN_NAME' env variable OR pass in event body")
+		os.Exit(1)
 	}
 
 	// Process ReImportThreshold

@@ -1,14 +1,18 @@
 package types
 
 type Response struct {
-	Message string `json:"Answer:"`
+	Message string `json:"answer"`
 }
 
 type Event struct {
-	ID                string `json:"id"`
-	DomainName        string `json:"domain_name"`
-	ReImportThreshold int    `json:"reimport_threshold"`
-	AcmeUrl           string `json:"acme_url"`
-	AcmeEmail         string `json:"acme_email"`
-	IssueType         string `json:"issue_type"`
+	AWSRegion string `json:"awsRegion"`
+
+	ACMRegion     string `json:"acmRegion"`
+	Route53Region string `json:"route53Region"`
+
+	DomainName        string `json:"domainName"`
+	ReImportThreshold int    `json:"reimportThreshold"`
+	AcmeUrl           string `json:"acmeUrl"`
+	AcmeEmail         string `json:"acmeEmail"`
+	IssueType         string `json:"issueType"`
 }

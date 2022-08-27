@@ -13,7 +13,6 @@ import (
 	"github.com/kvendingoldo/aws-letsencrypt-lambda/internal/config"
 	"github.com/kvendingoldo/aws-letsencrypt-lambda/internal/utils"
 	log "github.com/sirupsen/logrus"
-	"os"
 	"time"
 )
 
@@ -127,14 +126,11 @@ func processCertificate(ctx context.Context, config config.Config, client *cloud
 	return nil
 }
 
-func Execute(config config.Config) {
-	client, err := cloud.New(context.TODO(), config.Region)
+func Execute(ctx context.Context, config config.Config) error {
+	client, err := cloud.New(ctx, config.ACMRegion, config.Route53Region)
 	if err != nil {
-		log.Error(fmt.Sprintf("Could not create AWS client"), "error", err)
-		os.Exit(1)
+		return fmt.Errorf("Could not create AWS client. Error: %s", err)
 	}
-
-	ctx := context.TODO()
 
 	params := &acm.ListCertificatesInput{
 		CertificateStatuses: []acmTypes.CertificateStatus{acmTypes.CertificateStatusIssued},
@@ -142,8 +138,7 @@ func Execute(config config.Config) {
 	}
 	certificates, err := client.ACMClient.ListCertificates(ctx, params)
 	if err != nil {
-		log.Error(fmt.Sprintf("Could not get list of AWS certificates"), "error", err)
-		os.Exit(1)
+		return fmt.Errorf("Could not get list of AWS certificates. Error: %s", err)
 	}
 
 	crt, err := getCertificateByDomainFromSlice(config.DomainName, certificates)
@@ -152,25 +147,21 @@ func Execute(config config.Config) {
 
 		tlsCertificates, err := utils.GetCertificates(config, config.DomainName)
 		if err != nil {
-			log.Error("Failed to issue certificate")
-			log.Error("error", err)
-			os.Exit(1)
+			return fmt.Errorf("Failed to issue certificate. Error: %s", err)
 		}
 
 		err = importCertificate(ctx, client, nil, tlsCertificates, false)
 		if err != nil {
-			log.Error("Failed to import certificate")
-			log.Error("error", err)
-			os.Exit(1)
+			return fmt.Errorf("Failed to import certificate. Error: %s", err)
 		}
 
 	} else {
 		log.Infof("Certificate found, arn is %v. Trying to renew ...", *crt.CertificateArn)
 		err := processCertificate(ctx, config, client, crt)
 		if err != nil {
-			log.Error(fmt.Sprintf("Failed to proccess certificate\n"), "error", err)
-			os.Exit(1)
+			return fmt.Errorf("Failed to proccess certificate. Error: %s", err)
 		}
 	}
 
+	return nil
 }
