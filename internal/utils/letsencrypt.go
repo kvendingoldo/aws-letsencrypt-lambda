@@ -48,7 +48,7 @@ func GetCertificates(config config.Config, domainName string) (*certificate.Reso
 
 	acmeConfig := lego.NewConfig(&acmeUser)
 
-	acmeConfig.CADirURL = config.AcmeUrl
+	acmeConfig.CADirURL = config.AcmeURL
 	acmeConfig.Certificate.KeyType = certcrypto.RSA2048
 
 	// NOTE: A client facilitates communication with the CA server.

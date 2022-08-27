@@ -16,7 +16,7 @@ type Event struct {
 
 	DomainName        string   `json:"domainName"`
 	ReImportThreshold null.Int `json:"reImportThreshold"`
-	AcmeUrl           string   `json:"acmeUrl"`
+	AcmeURL           string   `json:"acmeUrl"`
 	AcmeEmail         string   `json:"acmeEmail"`
 	IssueType         string   `json:"issueType"`
 }

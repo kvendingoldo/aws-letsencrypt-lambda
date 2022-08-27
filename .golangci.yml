@@ -7,13 +7,32 @@ run:
   modules-download-mode: readonly
 
 linters:
-  enable:
-    - vet
-    - gofmt
-    - deadcode
-    - varcheck
-    - structcheck
-    - ineffassign
-    - unconvert
-    - misspell
+  enable-all: true
   disable-all: false
+  disable:
+    - wsl
+    - wrapcheck
+    - goerr113
+    - gomnd
+    - exhaustruct
+    - nestif
+    - gofumpt
+    - gochecknoinits
+    - funlen
+    - cyclop
+    - goimports
+    - gci
+    - lll
+    - gocognit
+    - ifshort # deprecated
+    - maligned # deprecated
+    - golint # deprecated
+    - interfacer  #deprecated
+    - scopelint # deprecated
+    - exhaustivestruct # deprecated
+
+linters-settings:
+  gosimple:
+    checks:
+      - all
+      - '-S1024' # disable the rule S1024

@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/acm"
-	"github.com/aws/aws-sdk-go-v2/service/acm/types"
 	acmTypes "github.com/aws/aws-sdk-go-v2/service/acm/types"
 	"github.com/go-acme/lego/v4/certificate"
 	"github.com/kvendingoldo/aws-letsencrypt-lambda/internal/cloud"
@@ -23,7 +22,7 @@ func getCertificateByDomainFromSlice(domain string, certificates *acm.ListCertif
 		}
 	}
 
-	return acmTypes.CertificateSummary{}, errors.New("Not found")
+	return acmTypes.CertificateSummary{}, errors.New("not found")
 }
 
 func showCertificateInfo(certificate acmTypes.CertificateDetail) {
@@ -33,7 +32,7 @@ func showCertificateInfo(certificate acmTypes.CertificateDetail) {
 
 	notAfterDate := certificate.NotAfter
 	certificateDaysLeft := int(notAfterDate.Sub(time.Now()).Hours() / 24)
-	log.Infof("Certificate valid untill %v (%v days left)", notAfterDate, certificateDaysLeft)
+	log.Infof("Certificate valid until %v (%v days left)", notAfterDate, certificateDaysLeft)
 }
 
 func importCertificate(ctx context.Context, client *cloud.Client, arn *string, tlsCertificates *certificate.Resource, reimport bool) error {
@@ -48,7 +47,7 @@ func importCertificate(ctx context.Context, client *cloud.Client, arn *string, t
 	}
 
 	if !reimport {
-		params.Tags = []types.Tag{
+		params.Tags = []acmTypes.Tag{
 			{
 				Key:   aws.String(lambdaAwsTag),
 				Value: aws.String("true"),
@@ -66,6 +65,7 @@ func importCertificate(ctx context.Context, client *cloud.Client, arn *string, t
 	}
 
 	log.Infof("Certificate has been sucessefully imported. Arn is %v", *output.CertificateArn)
+
 	return nil
 }
 
@@ -84,6 +84,7 @@ func processCertificate(ctx context.Context, config config.Config, client *cloud
 	for _, tag := range tags.Tags {
 		if *tag.Key == lambdaAwsTag {
 			isAutomationEnabled = true
+
 			break
 		}
 	}
@@ -105,6 +106,7 @@ func processCertificate(ctx context.Context, config config.Config, client *cloud
 	showCertificateInfo(*info.Certificate)
 	certificateDaysLeft := int64(info.Certificate.NotAfter.Sub(time.Now()).Hours() / 24)
 
+	//nolint:gocritic
 	if (certificateDaysLeft <= config.ReImportThreshold) || (config.IssueType == "force") || ((*info.Certificate).Status == acmTypes.CertificateStatusExpired) {
 		if config.IssueType == "force" {
 			log.Info("IssueType == force, certificate will be recreated")
@@ -129,7 +131,8 @@ func processCertificate(ctx context.Context, config config.Config, client *cloud
 func Execute(ctx context.Context, config config.Config) error {
 	client, err := cloud.New(ctx, config.ACMRegion, config.Route53Region)
 	if err != nil {
-		return fmt.Errorf("Could not create AWS client. Error: %s", err)
+		//nolint:stylecheck
+		return fmt.Errorf("Could not create AWS client. Error: %w", err)
 	}
 
 	params := &acm.ListCertificatesInput{
@@ -138,7 +141,8 @@ func Execute(ctx context.Context, config config.Config) error {
 	}
 	certificates, err := client.ACMClient.ListCertificates(ctx, params)
 	if err != nil {
-		return fmt.Errorf("Could not get list of AWS certificates. Error: %s", err)
+		//nolint:stylecheck
+		return fmt.Errorf("Could not get list of AWS certificates. Error: %w", err)
 	}
 
 	crt, err := getCertificateByDomainFromSlice(config.DomainName, certificates)
@@ -147,19 +151,21 @@ func Execute(ctx context.Context, config config.Config) error {
 
 		tlsCertificates, err := utils.GetCertificates(config, config.DomainName)
 		if err != nil {
-			return fmt.Errorf("Failed to issue certificate. Error: %s", err)
+			//nolint:stylecheck
+			return fmt.Errorf("Failed to issue certificate. Error: %w", err)
 		}
 
 		err = importCertificate(ctx, client, nil, tlsCertificates, false)
 		if err != nil {
-			return fmt.Errorf("Failed to import certificate. Error: %s", err)
+			//nolint:stylecheck
+			return fmt.Errorf("Failed to import certificate. Error: %w", err)
 		}
-
 	} else {
 		log.Infof("Certificate found, arn is %v. Trying to renew ...", *crt.CertificateArn)
 		err := processCertificate(ctx, config, client, crt)
 		if err != nil {
-			return fmt.Errorf("Failed to proccess certificate. Error: %s", err)
+			//nolint:stylecheck
+			return fmt.Errorf("Failed to process certificate. Error: %w", err)
 		}
 	}
 

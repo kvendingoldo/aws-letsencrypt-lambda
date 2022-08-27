@@ -17,14 +17,16 @@ type Config struct {
 	DomainName        string
 	ReImportThreshold int64
 	AcmeEmail         string
-	AcmeUrl           string
+	AcmeURL           string
 	IssueType         string
 }
 
+//nolint:unparam
 func getEnv(key, fallback string) string {
 	if value, ok := os.LookupEnv(key); ok {
 		return value
 	}
+
 	return fallback
 }
 
@@ -81,7 +83,8 @@ func New(eventRaw interface{}) (*Config, error) {
 	} else {
 		reimportThresholdValue, err := strconv.ParseInt(reimportThreshold, 10, 64)
 		if err != nil {
-			return nil, fmt.Errorf("Could not parse 'REIMPORT_THRESHOLD' variable'. Error: %s", err)
+			//nolint:stylecheck
+			return nil, fmt.Errorf("Could not parse 'REIMPORT_THRESHOLD' variable'. Error: %w", err)
 		}
 		config.ReImportThreshold = reimportThresholdValue
 	}
@@ -113,36 +116,37 @@ func New(eventRaw interface{}) (*Config, error) {
 		return nil, fmt.Errorf("AcmeEmail is empty; Configure it via 'ACME_EMAIL' env variable OR pass in event body")
 	}
 
-	// Process AcmeUrl
-	var acmeUrl string
-	if acmeUrlEnv := getEnv("ACME_URL", ""); acmeUrlEnv == "" {
+	// Process AcmeURL
+	var acmeURL string
+	if acmeURLEnv := getEnv("ACME_URL", ""); acmeURLEnv == "" {
 		log.Warn("Environment variable 'ACME_URL' is empty")
 	} else {
-		acmeUrl = acmeUrlEnv
+		acmeURL = acmeURLEnv
 	}
 	if getFromEvent {
-		if event.AcmeUrl != "" {
-			acmeUrl = event.AcmeUrl
+		if event.AcmeURL != "" {
+			acmeURL = event.AcmeURL
 		} else {
 			log.Warn("Event contains empty acmeUrl variable")
 		}
 	}
 
-	switch acmeUrl {
+	switch acmeURL {
 	case "prod":
-		config.AcmeUrl = "https://acme-v02.api.letsencrypt.org/directory"
+		config.AcmeURL = "https://acme-v02.api.letsencrypt.org/directory"
 		log.Info("Lambda will use PROD ACME URL")
 	case "stage":
-		config.AcmeUrl = "https://acme-staging-v02.api.letsencrypt.org/directory"
+		config.AcmeURL = "https://acme-staging-v02.api.letsencrypt.org/directory"
 		log.Info("Lambda will use STAGING ACME URL; If you need to use PROD URL specify it via 'ACME_URL' or pass in event body")
 	default:
-		return nil, fmt.Errorf("Unkown value '%v' for acmeUrl; Check env var 'ACME_URL' or event body; Valid values are: 'stage' or 'prod'", acmeUrl)
+		//nolint:stylecheck
+		return nil, fmt.Errorf("Unknown value '%v' for acmeUrl; Check env var 'ACME_URL' or event body; Valid values are: 'stage' or 'prod'", acmeURL)
 	}
 
 	// Process Force
 	if issueType := getEnv("ISSUE_TYPE", ""); issueType == "" {
 		log.Warnf("Environment variable 'ISSUE_TYPE' is empty")
-		config.IssueType = "default"
+		config.IssueType = types.IssueTypeDefault
 	} else {
 		config.IssueType = issueType
 	}
@@ -154,11 +158,12 @@ func New(eventRaw interface{}) (*Config, error) {
 		}
 	}
 	if config.IssueType == "" {
-		config.IssueType = "default"
-		log.Info("IssueType is empty; 'default' value will be used")
+		config.IssueType = types.IssueTypeDefault
+		log.Infof("IssueType is empty; '%s' value will be used", types.IssueTypeDefault)
 	}
-	if !(config.IssueType == "default" || config.IssueType == "force") {
-		return nil, fmt.Errorf("Bad IssueType value (%v). It should be 'default' or 'force'", config.IssueType)
+	if !(config.IssueType == types.IssueTypeDefault || config.IssueType == types.IssueTypeForce) {
+		//nolint:stylecheck
+		return nil, fmt.Errorf("Bad IssueType value '%v'. It should be '%s' or '%s'", config.IssueType, types.IssueTypeDefault, types.IssueTypeForce)
 	}
 
 	return &config, nil
