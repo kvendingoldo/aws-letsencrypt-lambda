@@ -1,5 +1,9 @@
 package types
 
+import (
+	"github.com/guregu/null"
+)
+
 type Response struct {
 	Message string `json:"answer"`
 }
@@ -10,9 +14,9 @@ type Event struct {
 	ACMRegion     string `json:"acmRegion"`
 	Route53Region string `json:"route53Region"`
 
-	DomainName        string `json:"domainName"`
-	ReImportThreshold int    `json:"reimportThreshold"`
-	AcmeUrl           string `json:"acmeUrl"`
-	AcmeEmail         string `json:"acmeEmail"`
-	IssueType         string `json:"issueType"`
+	DomainName        string   `json:"domainName"`
+	ReImportThreshold null.Int `json:"reImportThreshold"`
+	AcmeUrl           string   `json:"acmeUrl"`
+	AcmeEmail         string   `json:"acmeEmail"`
+	IssueType         string   `json:"issueType"`
 }

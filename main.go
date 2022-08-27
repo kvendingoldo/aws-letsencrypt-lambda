@@ -48,10 +48,13 @@ func init() {
 
 func Handler(ctx context.Context, event types.Event) (types.Response, error) {
 	log.Infof("Handling lambda for event: %v", event)
-	config := cfg.New(event)
+	config, err := cfg.New(event)
+	if err != nil {
+		return types.Response{Message: "Lambda has been failed"}, err
+	}
 
 	var msg string
-	err := lambda.Execute(ctx, *config)
+	err = lambda.Execute(ctx, *config)
 	if err != nil {
 		msg = "Lambda has been failed"
 	} else {
@@ -70,9 +73,13 @@ func main() {
 		}
 
 		if mode == "local" {
-			config := cfg.New(nil)
-			err := lambda.Execute(context.TODO(), *config)
+			config, err := cfg.New(nil)
+			if err != nil {
+				log.Errorf("Lambda has been failed. Error: %s", err)
+				os.Exit(1)
+			}
 
+			err = lambda.Execute(context.TODO(), *config)
 			if err != nil {
 				log.Errorf("Lambda has been failed. Error: %s", err)
 				os.Exit(1)

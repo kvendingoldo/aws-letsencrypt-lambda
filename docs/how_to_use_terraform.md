@@ -32,18 +32,20 @@ variable "letsencrypt_lambda_image_uri" {
 variable "letsencrypt_lambda_events" {
   default = [
     {
-      "DomainName" : "<TEST_DOMAIN_1>",
-      "AcmeUrl" : "stage",
-      "AcmeEmail" : "<EMAIL_1>",
-      "ReImportThreshold" : 10,
-      "IssueType" : "force"
+      "domainName" : "<TEST_DOMAIN_1>",
+      "acmeUrl" : "stage",
+      "acmeEmail" : "<EMAIL_1>",
+      "reImportThreshold" : 10,
+      "issueType" : "force"
     },
     {
-      "DomainName" : "<TEST_DOMAIN_2>",
-      "AcmeUrl" : "prod",
-      "AcmeEmail" : "<EMAIL_2>",
-      "ReImportThreshold" : 30,
-      "IssueType" : "default"
+      "acmRegion" : "us-east-2",
+      "route53Region" : "us-east-1",
+      "domainName" : "<TEST_DOMAIN_2>",
+      "acmeUrl" : "prod",
+      "acmeEmail" : "<EMAIL_2>",
+      "reImportThreshold" : 30,
+      "issueType" : "default"
     }
   ]
 }

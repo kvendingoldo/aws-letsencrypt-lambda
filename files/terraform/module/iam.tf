@@ -58,6 +58,8 @@ resource "aws_iam_policy" "logging" {
 POLICY
 }
 resource "aws_iam_role_policy_attachment" "logging" {
+  count = var.create_iam_role ? 1 : 0
+
   role       = aws_iam_role.main[0].name
   policy_arn = aws_iam_policy.logging[0].arn
 }

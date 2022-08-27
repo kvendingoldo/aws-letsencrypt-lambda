@@ -68,13 +68,7 @@ variable "iam_role_arn" {
 # Lambda events
 #
 variable "events" {
-  type        = list(object({
-    DomainName : string,
-    AcmeUrl : string,
-    AcmeEmail : string
-    ReImportThreshold : number,
-    IssueType : string
-  }))
+  type        = any
   description = "List of events for Lambda function (each event contains info about one certificate)"
   default     = []
 }

@@ -11,11 +11,11 @@
 
 ```
 {
-  "domain_name": "<TEST_DOMAIN_3>",
-  "acme_url": "stage",
-  "acme_email": "<EMAIL_2>",
-  "reimport_threshold": 10,
-  "issue_type": "default"
+  "domainName": "<YOUR_VALID_DOMAIN>",
+  "acmeUrl": "stage",
+  "acmeEmail": "<ANY_VALID_EMAIL>",
+  "reImportThreshold": 10,
+  "issueType": "<default | force>"
 }
 ```
 
@@ -23,10 +23,10 @@
 
 ```json
 {
-   "domain_name": "t22est.com",
-   "acme_url": "stage",
-   "acme_email": "mytestemail@gmail.com",
-   "reimport_threshold": 10,
-   "issue_type": "default"
+   "domainName": "mypersonaldomain.com",
+   "acmeUrl": "stage",
+   "acmeEmail": "mypersonal@gmail.com",
+   "reImportThreshold": 10,
+   "issueType": "default"
 }
 ```

@@ -103,7 +103,7 @@ func processCertificate(ctx context.Context, config config.Config, client *cloud
 	}
 
 	showCertificateInfo(*info.Certificate)
-	certificateDaysLeft := int(info.Certificate.NotAfter.Sub(time.Now()).Hours() / 24)
+	certificateDaysLeft := int64(info.Certificate.NotAfter.Sub(time.Now()).Hours() / 24)
 
 	if (certificateDaysLeft <= config.ReImportThreshold) || (config.IssueType == "force") || ((*info.Certificate).Status == acmTypes.CertificateStatusExpired) {
 		if config.IssueType == "force" {
