@@ -44,7 +44,7 @@ jobs:
           password: ${{ secrets.REGISTRY_PASSWORD }}
       -
         name: Build and push to Docker Hub
-        uses: docker/build-push-action@v3
+        uses: docker/build-push-action@v5
         with:
           push: true
           tags: |
@@ -59,7 +59,7 @@ jobs:
           password: ${{secrets.GITHUB_TOKEN}}
       -
         name: Build and push to GitHub package registry
-        uses: docker/build-push-action@v3
+        uses: docker/build-push-action@v5
         with:
           push: true
           tags: |
