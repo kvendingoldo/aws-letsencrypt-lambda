@@ -26,7 +26,7 @@ variable "security_group_ids" {
 }
 variable "image" {
   type        = string
-  description = "DockerHub image containing the function's deployment package"
+  description = "Docker image containing the function's deployment package"
   default     = "kvendingoldo/aws-letsencrypt-lambda:rc-0.9.0"
 }
 variable "description" {
@@ -53,15 +53,33 @@ variable "environ" {
 #
 # ECR proxy
 #
-variable "ecr_repository_prefix" {
+variable "ecr_proxy_enabled" {
+  default = false
+}
+variable "ecr_proxy_repository_prefix" {
   description = "The repository name prefix to use when caching images from the source registry."
   type        = string
-  default     = "docker-hub/kvendingoldo"
+  default     = "proxy-cache"
 }
-variable "ecr_upstream_registry_url" {
+variable "ecr_proxy_upstream_registry_url" {
   description = "The registry URL of the upstream public registry to use as the source."
   type        = string
   default     = "registry-1.docker.io"
+
+  validation {
+    condition     = can(regex("^((public\\.ecr\\.aws)|(registry-1\\.docker\\.io)|(registry\\.k8s\\.io)|(quay\\.io)|(ghcr\\.io)|(\\w+\\.azurecr\\.io))$", var.container_registry_url))
+    error_message = "Invalid container registry URL. It must be one of: public.ecr.aws, registry-1.docker.io, registry.k8s.io, quay.io, ghcr.io, {custom}.azurecr.io"
+  }
+}
+variable "ecr_proxy_username" {
+  description = "The username to access to public registry"
+  type        = string
+  default     = null
+}
+variable "ecr_proxy_access_token" {
+  description = "The username to access to public registry"
+  type        = string
+  default     = null
 }
 
 #

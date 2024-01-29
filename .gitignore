@@ -20,3 +20,4 @@ files/terraform/module/terraform.tfstate*
 files/terraform/module/.terraform.*
 files/terraform/module/.terraform
 files/terraform/misc
+.terraform
