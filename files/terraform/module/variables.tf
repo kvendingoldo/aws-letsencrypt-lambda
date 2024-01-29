@@ -24,15 +24,15 @@ variable "security_group_ids" {
   description = "The VPC security groups assigned to the Lambda"
   default     = []
 }
-
+variable "image" {
+  type        = string
+  description = "DockerHub image containing the function's deployment package"
+  default     = "kvendingoldo/aws-letsencrypt-lambda:rc-0.9.0"
+}
 variable "description" {
   type        = string
   description = "Lambda description"
   default     = ""
-}
-variable "image_uri" {
-  type        = string
-  description = "ECR image URI containing the function's deployment package"
 }
 variable "timeout" {
   type        = string
@@ -48,6 +48,20 @@ variable "environ" {
   description = "Environment variables passed to the Lambda function"
   type        = map(string)
   default     = {}
+}
+
+#
+# ECR proxy
+#
+variable "ecr_repository_prefix" {
+  description = "The repository name prefix to use when caching images from the source registry."
+  type        = string
+  default     = "docker-hub/kvendingoldo"
+}
+variable "ecr_upstream_registry_url" {
+  description = "The registry URL of the upstream public registry to use as the source."
+  type        = string
+  default     = "registry-1.docker.io"
 }
 
 #
@@ -77,8 +91,9 @@ variable "events" {
 # Cron variables
 #
 variable "cron_enabled" {
-  type    = bool
-  default = true
+  type        = bool
+  description = "If true, CRON schedule rules will be enabled"
+  default     = true
 }
 variable "cron_schedule" {
   type        = string

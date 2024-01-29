@@ -135,5 +135,3 @@ resource "aws_iam_role_policy_attachment" "route53" {
   role       = aws_iam_role.main[0].name
   policy_arn = aws_iam_policy.route53[0].arn
 }
-
-

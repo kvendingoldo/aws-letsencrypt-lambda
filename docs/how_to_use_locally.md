@@ -18,4 +18,3 @@ export ISSUE_TYPE="default"
 ```sh
 go run main.go
 ```
-
