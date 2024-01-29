@@ -15,7 +15,7 @@ AWS Lambda does not provide an ability to use public docker images easily. To us
    1. Pull kvendingoldo's image from [Docker Hub](https://hub.docker.com/repository/docker/kvendingoldo/aws-letsencrypt-lambda) / [GitHub registry](https://github.com/kvendingoldo?tab=packages&repo_name=aws-letsencrypt-lambda).
    2. Create your own private AWS ECR repository
    3. Retag pulled image and push it to your private ECR repository. 
-   4. Change `var.image` to your image URL. E.g.: `image = "004867756392.dkr.ecr.us-east-1.amazonaws.com/aws_letsencrypt_lambda:0.11.0"`
+   4. Change `var.image` to your image URL. E.g.: `image = "004867756392.dkr.ecr.us-east-1.amazonaws.com/aws_letsencrypt_lambda:0.14.0"`
 
 
 ## Terraform examples
@@ -28,7 +28,7 @@ To get more examples, explore [`examples`](https://github.com/kvendingoldo/aws-l
 
 ```terraform
 module "letsencrypt_lambda" {
-  source = "git@github.com:kvendingoldo/aws-letsencrypt-lambda.git//files/terraform/module?ref=0.11.0"
+  source = "git@github.com:kvendingoldo/aws-letsencrypt-lambda.git//files/terraform/module?ref=0.14.0"
 
   blank_name = "test-letsencrypt-lambda"
   tags       = {

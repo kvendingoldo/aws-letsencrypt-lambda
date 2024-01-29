@@ -27,7 +27,7 @@ variable "security_group_ids" {
 variable "image" {
   type        = string
   description = "Docker image containing the function's deployment package"
-  default     = "kvendingoldo/aws-letsencrypt-lambda:rc-0.9.0"
+  default     = "kvendingoldo/aws-letsencrypt-lambda:0.14.0"
 }
 variable "description" {
   type        = string
