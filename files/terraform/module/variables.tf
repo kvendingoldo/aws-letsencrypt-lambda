@@ -67,7 +67,7 @@ variable "ecr_proxy_upstream_registry_url" {
   default     = "registry-1.docker.io"
 
   validation {
-    condition     = can(regex("^((public\\.ecr\\.aws)|(registry-1\\.docker\\.io)|(registry\\.k8s\\.io)|(quay\\.io)|(ghcr\\.io)|(\\w+\\.azurecr\\.io))$", var.container_registry_url))
+    condition     = can(regex("^((public\\.ecr\\.aws)|(registry-1\\.docker\\.io)|(registry\\.k8s\\.io)|(quay\\.io)|(ghcr\\.io)|(\\w+\\.azurecr\\.io))$", var.ecr_proxy_upstream_registry_url))
     error_message = "Invalid container registry URL. It must be one of: public.ecr.aws, registry-1.docker.io, registry.k8s.io, quay.io, ghcr.io, {custom}.azurecr.io"
   }
 }
