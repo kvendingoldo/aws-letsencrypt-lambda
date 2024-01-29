@@ -10,7 +10,6 @@ module "letsencrypt_lambda" {
   tags       = var.tags
 
   cron_schedule = var.letsencrypt_lambda_cron_schedule
-  image_uri     = var.letsencrypt_lambda_image_uri
   events        = var.letsencrypt_lambda_events
 }
 ```
@@ -25,9 +24,6 @@ variable "tags" {
 }
 variable "letsencrypt_lambda_cron_schedule" {
   default = "rate(168 hours)"
-}
-variable "letsencrypt_lambda_image_uri" {
-  default = "<YOUR_ACCOUNT_ID>.dkr.ecr.us-east-2.amazonaws.com/aws_letsencrypt_lambda:<VERSION>"
 }
 variable "letsencrypt_lambda_events" {
   default = [

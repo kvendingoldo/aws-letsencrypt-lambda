@@ -1,8 +1,13 @@
 ## How to use it within AWS
 
-1. Lambda image should be pulled from docker hub and pushed into your personal ECR repository; AWS Lambda is not able to
-   work with any other docker registry except ECR.
-2. Apply TF module into your infrastructure
+1. Apply TF module into your infrastructure via the following commands
+
+```sh
+cd files/terraform/module
+terraform init
+terraform plan -out plan.out
+terraform apply -auto-approve plan.out
+```
 
 ### How to trigger lambda manually via UI
 

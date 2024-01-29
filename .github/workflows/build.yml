@@ -41,7 +41,7 @@ jobs:
         uses: kvendingoldo/semver-action@v1.19
         with:
           primary_branch: main
-          enable_github_releases: false
+          enable_github_releases: true
           github_token: "${{ secrets.GITHUB_TOKEN }}"
       -
         name: Build and push
