@@ -7,7 +7,7 @@ resource "aws_lambda_function" "main" {
   tags          = var.tags
 
   role         = var.create_iam_role ? aws_iam_role.main[0].arn : var.iam_role_arn
-  image_uri    = local.image
+  image_uri    = local.lambda_image
   package_type = "Image"
   timeout      = var.timeout
   memory_size  = var.memory_size

@@ -127,3 +127,29 @@ variable "retention" {
   description = "Number of days to retain log events in the specified log group"
   default     = 7
 }
+
+#
+# Lambda image
+#
+variable "dockerhub_image" {
+  default = "kvendingoldo/aws-letsencrypt-lambda:latest"
+}
+variable "ecr_image_uri" {
+  type        = string
+  description = "ECR image URI containing the function's deployment package. Required only if enable_ecr_proxy is false"
+  default     = null
+}
+
+#
+# ECR proxy for DockerHub
+#
+variable "enable_ecr_proxy" {
+  default = true
+}
+variable "ecr_repository_prefix" {
+  default = "dockerhub-public"
+}
+variable "dockerhub_proxy_secret_arn" {
+  description = "If left empty, image is pulled directly from Docker Hub, which might be throttled."
+  default     = ""
+}
