@@ -2,11 +2,12 @@ package config
 
 import (
 	"fmt"
+	"os"
+	"strconv"
+
 	"github.com/guregu/null"
 	"github.com/kvendingoldo/aws-letsencrypt-lambda/internal/types"
 	log "github.com/sirupsen/logrus"
-	"os"
-	"strconv"
 )
 
 type Config struct {
@@ -16,12 +17,12 @@ type Config struct {
 	Route53Region        string
 	SecretsManagerRegion string
 
-	DomainName        string
-	ReImportThreshold int64
-	AcmeEmail         string
-	AcmeURL           string
-	IssueType         string
-	StoreCertInSecretsManager     null.Bool
+	DomainName                string
+	ReImportThreshold         int64
+	AcmeEmail                 string
+	AcmeURL                   string
+	IssueType                 string
+	StoreCertInSecretsManager null.Bool
 }
 
 //nolint:unparam
@@ -187,9 +188,11 @@ func New(eventRaw interface{}) (*Config, error) {
 		}
 	}
 	if !config.StoreCertInSecretsManager.Valid {
-		log.Warn("storeCertInSecretsManager is not specified; Certificate won't be stored in AWS Secrets manager.")
+		log.Warn("storeCertInSecretsManager is not specified in configuration; Certificate won't be stored in AWS Secrets manager.")
 		config.StoreCertInSecretsManager = null.NewBool(false, true)
 	}
+
+	log.Debugf("The full configuration: %+v", config)
 
 	return &config, nil
 }

@@ -188,6 +188,8 @@ func processCertificate(ctx context.Context, config config.Config, client *cloud
       if err != nil {
         return err
       }
+    } else {
+      log.Warnf("StoreCertInSecretsManager is %v; Upload to Secrets Manages has been skipped.", config.StoreCertInSecretsManager.Bool)
     }
 
 	} else {

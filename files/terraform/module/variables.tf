@@ -45,14 +45,13 @@ variable "environ" {
   default     = {}
 }
 
-
 #
 # Lambda image
 #
 variable "public_image" {
   type        = string
   description = "GHCR image containing the function's deployment package"
-  default     = "kvendingoldo/aws-letsencrypt-lambda:rc-0.26.0"
+  default     = "kvendingoldo/aws-letsencrypt-lambda:rc-0.27.0"
 }
 variable "ecr_image_uri" {
   type        = string

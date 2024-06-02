@@ -48,7 +48,7 @@ func init() {
 }
 
 func Handler(ctx context.Context, event types.Event) (types.Response, error) {
-	log.Infof("Handling lambda for event: %v", event)
+	log.Infof("Handling lambda for event: %+v", event)
 	config, err := cfg.New(event)
 	if err != nil {
 		return types.Response{Message: "Lambda has been failed"}, err
