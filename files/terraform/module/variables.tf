@@ -153,3 +153,12 @@ variable "dockerhub_proxy_secret_arn" {
   description = "If left empty, image is pulled directly from Docker Hub, which might be throttled."
   default     = ""
 }
+
+#
+# Secret manager
+#
+variable "enable_storing_certs_in_sm" {
+  description = "If true, Lambda will store certificate in Secrets Manager as well as in Certificate Manager"
+  default     = false
+  type        = bool
+}

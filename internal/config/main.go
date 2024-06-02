@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"github.com/guregu/null"
 	"github.com/kvendingoldo/aws-letsencrypt-lambda/internal/types"
 	log "github.com/sirupsen/logrus"
 	"os"
@@ -11,14 +12,16 @@ import (
 type Config struct {
 	AWSRegion string
 
-	ACMRegion     string
-	Route53Region string
+	ACMRegion            string
+	Route53Region        string
+	SecretsManagerRegion string
 
 	DomainName        string
 	ReImportThreshold int64
 	AcmeEmail         string
 	AcmeURL           string
 	IssueType         string
+	StoreCertInSM     null.Bool
 }
 
 //nolint:unparam
@@ -73,7 +76,7 @@ func New(eventRaw interface{}) (*Config, error) {
 			config.DomainName = event.DomainName
 		}
 	}
-	if event.DomainName == "" {
+	if config.DomainName == "" {
 		return nil, fmt.Errorf("DomainName is empty; Configure it via 'DOMAIN_NAME' env variable OR pass in event body")
 	}
 
@@ -164,6 +167,28 @@ func New(eventRaw interface{}) (*Config, error) {
 	if !(config.IssueType == types.IssueTypeDefault || config.IssueType == types.IssueTypeForce) {
 		//nolint:stylecheck
 		return nil, fmt.Errorf("Bad IssueType value '%v'. It should be '%s' or '%s'", config.IssueType, types.IssueTypeDefault, types.IssueTypeForce)
+	}
+
+	// Process StoreCertInSM
+	if storeCertInSM := getEnv("STORE_CERT_IN_SM", ""); storeCertInSM != "" {
+		storeCertInSMValue, err := strconv.ParseBool(storeCertInSM)
+		if err != nil {
+			//nolint:stylecheck
+			return nil, fmt.Errorf("Could not parse 'STORE_CERT_IN_SM' variable. Error: %w", err)
+		}
+
+		config.StoreCertInSM = null.NewBool(storeCertInSMValue, true)
+	} else {
+		log.Warn("Environment variable 'STORE_CERT_IN_SM' is empty")
+	}
+	if getFromEvent {
+		if event.StoreCertInSM.Valid {
+			config.StoreCertInSM = event.StoreCertInSM
+		}
+	}
+	if !config.StoreCertInSM.Valid {
+		log.Warn("storeCertInSM is not specified; Storing certificated in AWS Secret managed won't be enabled")
+		config.StoreCertInSM = null.NewBool(false, true)
 	}
 
 	return &config, nil

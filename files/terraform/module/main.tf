@@ -18,7 +18,7 @@ resource "aws_lambda_function" "main" {
   }
 
   environment {
-    variables = merge(var.environ, { "MODE" : "cloud", "FORMATTER_TYPE" : "JSON" })
+    variables = merge(var.environ, { "MODE" : "cloud", "FORMATTER_TYPE" : "JSON", "STORE_CERT_IN_SM": var.enable_storing_certs_in_sm })
   }
 }
 

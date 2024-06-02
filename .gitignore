@@ -21,3 +21,5 @@ files/terraform/module/.terraform.*
 files/terraform/module/.terraform
 files/terraform/misc
 .terraform
+
+bin/*
