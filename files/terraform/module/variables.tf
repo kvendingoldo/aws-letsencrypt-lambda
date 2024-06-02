@@ -24,15 +24,10 @@ variable "security_group_ids" {
   description = "The VPC security groups assigned to the Lambda"
   default     = []
 }
-variable "image" {
-  type        = string
-  description = "Docker image containing the function's deployment package"
-  default     = "kvendingoldo/aws-letsencrypt-lambda:0.14.0"
-}
 variable "description" {
   type        = string
   description = "Lambda description"
-  default     = ""
+  default     = "The AWS Let's Encrypt Lambda. URL: https://github.com/kvendingoldo/aws-letsencrypt-lambda"
 }
 variable "timeout" {
   type        = string
@@ -50,34 +45,52 @@ variable "environ" {
   default     = {}
 }
 
+
+#
+# Lambda image
+#
+variable "public_image" {
+  type        = string
+  description = "GHCR image containing the function's deployment package"
+  default     = "kvendingoldo/aws-letsencrypt-lambda:rc-0.21.0"
+}
+variable "ecr_image_uri" {
+  type        = string
+  description = "ECR image URI. Required only if enable_ecr_proxy is false"
+  default     = null
+}
+
 #
 # ECR proxy
 #
 variable "ecr_proxy_enabled" {
-  default = false
-}
-variable "ecr_proxy_repository_prefix" {
-  description = "The repository name prefix to use when caching images from the source registry."
-  type        = string
-  default     = "proxy-cache"
+  type        = bool
+  description = "If true, ECR proxy for DockerHub will be created"
+  default     = true
 }
 variable "ecr_proxy_upstream_registry_url" {
   description = "The registry URL of the upstream public registry to use as the source."
   type        = string
-  default     = "registry-1.docker.io"
+  default     = "ghcr.io"
 
   validation {
     condition     = can(regex("^((public\\.ecr\\.aws)|(registry-1\\.docker\\.io)|(registry\\.k8s\\.io)|(quay\\.io)|(ghcr\\.io)|(\\w+\\.azurecr\\.io))$", var.ecr_proxy_upstream_registry_url))
     error_message = "Invalid container registry URL. It must be one of: public.ecr.aws, registry-1.docker.io, registry.k8s.io, quay.io, ghcr.io, {custom}.azurecr.io"
   }
 }
+variable "ecr_proxy_repository_prefix" {
+  type        = string
+  description = "The repository name prefix to use when caching images from the source registry."
+  default     = "proxy-public"
+}
+
 variable "ecr_proxy_username" {
-  description = "The username to access to public registry"
+  description = "The username to access to public registry."
   type        = string
   default     = null
 }
 variable "ecr_proxy_access_token" {
-  description = "The username to access to public registry"
+  description = "The username to access to public registry."
   type        = string
   default     = null
 }
@@ -88,7 +101,7 @@ variable "ecr_proxy_access_token" {
 variable "create_iam_role" {
   description = "Create IAM role with a defined name that permits Lambda to work with Route53 & ACM"
   type        = bool
-  default     = false
+  default     = true
 }
 variable "iam_role_arn" {
   description = "The ARN for the IAM role that permits Lambda to work with Route53 & ACM. Must be specified if monitoring_interval is non-zero"
@@ -122,43 +135,18 @@ variable "cron_schedule" {
 #
 # Logging
 #
-variable "retention" {
+variable "cloudwatch_log_group_retention" {
   type        = number
-  description = "Number of days to retain log events in the specified log group"
+  description = "Number of days to retain log events in the specified cloudwarch log group"
   default     = 7
 }
 
-#
-# Lambda image
-#
-variable "dockerhub_image" {
-  default = "kvendingoldo/aws-letsencrypt-lambda:latest"
-}
-variable "ecr_image_uri" {
-  type        = string
-  description = "ECR image URI containing the function's deployment package. Required only if enable_ecr_proxy is false"
-  default     = null
-}
-
-#
-# ECR proxy for DockerHub
-#
-variable "enable_ecr_proxy" {
-  default = true
-}
-variable "ecr_repository_prefix" {
-  default = "dockerhub-public"
-}
-variable "dockerhub_proxy_secret_arn" {
-  description = "If left empty, image is pulled directly from Docker Hub, which might be throttled."
-  default     = ""
-}
 
 #
 # Secret manager
 #
 variable "enable_storing_certs_in_sm" {
+  type        = bool
   description = "If true, Lambda will store certificate in Secrets Manager as well as in Certificate Manager"
   default     = false
-  type        = bool
 }

@@ -62,6 +62,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           push: true
+          provenance: false
           tags: |
             ghcr.io/${{ env.image_repo }}:latest
             ghcr.io/${{ env.image_repo }}:${{ steps.set_version.outputs.safe_version }}

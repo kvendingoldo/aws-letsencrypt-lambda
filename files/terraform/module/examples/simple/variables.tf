@@ -6,18 +6,15 @@ variable "tags" {
 variable "letsencrypt_lambda_cron_schedule" {
   default = "rate(168 hours)"
 }
-variable "letsencrypt_lambda_image_uri" {
-  default = "<YOUR_ACCOUNT_ID>.dkr.ecr.us-east-2.amazonaws.com/aws_letsencrypt_lambda:<VERSION>"
-}
 variable "letsencrypt_lambda_events" {
   default = [
     {
-      "acmRegion" : "us-east-2",
+      "acmRegion" : "us-east-1",
       "route53Region" : "us-east-1",
-      "domainName" : "<TEST_DOMAIN_2>",
-      "acmeUrl" : "prod",
-      "acmeEmail" : "<EMAIL_2>",
-      "reImportThreshold" : 30,
+      "domainName" : "hackernoon.referrs.me",
+      "acmeUrl" : "stage",
+      "acmeEmail" : "alex.sharov@referrs.me",
+      "reImportThreshold" : 10,
       "issueType" : "default"
     }
   ]

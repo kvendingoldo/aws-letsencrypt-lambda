@@ -1,5 +1,5 @@
 module "certs_renew_lambda_use2" {
-  source = "git::https://github.com/kvendingoldo/aws-letsencrypt-lambda.git//files/terraform/module?ref=0.14.0"
+  source = "../../"
 
   blank_name = "example-certs-use2"
   tags       = {}
@@ -20,13 +20,12 @@ module "certs_renew_lambda_use1" {
     aws = aws.use1
   }
 
-  source = "git::https://github.com/kvendingoldo/aws-letsencrypt-lambda.git//files/terraform/module?ref=0.14.0"
+  source = "../../"
 
   blank_name = "example-certs-use1"
   tags       = {}
 
   cron_schedule = var.certs_renew_lambda_cron_schedule
-  image         = "004867756392.dkr.ecr.us-east-1.amazonaws.com/aws_letsencrypt_lambda:0.14.0"
   events        = var.certs_renew_lambda_events_use1
 
   create_iam_role = true

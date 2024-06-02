@@ -139,7 +139,7 @@ resource "aws_iam_role_policy_attachment" "route53" {
 #
 # Secrets Manager policy
 #
-resource "aws_iam_policy" "secretmanager" {
+resource "aws_iam_policy" "secretsmanager" {
   count = var.create_iam_role && var.enable_storing_certs_in_sm ? 1 : 0
 
   name        = format("%s-%s", var.blank_name, "secretsmanager")

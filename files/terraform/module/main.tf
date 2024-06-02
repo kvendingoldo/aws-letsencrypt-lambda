@@ -18,8 +18,12 @@ resource "aws_lambda_function" "main" {
   }
 
   environment {
-    variables = merge(var.environ, { "MODE" : "cloud", "FORMATTER_TYPE" : "JSON", "STORE_CERT_IN_SM": var.enable_storing_certs_in_sm })
+    variables = merge(var.environ, { "MODE" : "cloud", "FORMATTER_TYPE" : "JSON", "STORE_CERT_IN_SM" : var.enable_storing_certs_in_sm })
   }
+
+  depends_on = [
+    aws_ecr_pull_through_cache_rule.lambda_proxy
+  ]
 }
 
 #
@@ -29,7 +33,7 @@ resource "aws_cloudwatch_log_group" "main" {
   name = "/aws/lambda/${var.blank_name}"
   tags = var.tags
 
-  retention_in_days = var.retention
+  retention_in_days = var.cloudwatch_log_group_retention
   depends_on        = [aws_lambda_function.main]
 }
 
@@ -44,7 +48,7 @@ resource "aws_cloudwatch_event_rule" "schedule" {
   tags        = var.tags
 
   schedule_expression = var.cron_schedule
-  is_enabled          = true
+  state               = "ENABLED"
 }
 
 resource "aws_lambda_permission" "allow_cloudwatch" {
