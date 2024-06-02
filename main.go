@@ -2,12 +2,13 @@ package main
 
 import (
 	"context"
+	"os"
+
 	awsLambda "github.com/aws/aws-lambda-go/lambda"
 	cfg "github.com/kvendingoldo/aws-letsencrypt-lambda/internal/config"
 	"github.com/kvendingoldo/aws-letsencrypt-lambda/internal/lambda"
 	"github.com/kvendingoldo/aws-letsencrypt-lambda/internal/types"
 	log "github.com/sirupsen/logrus"
-	"os"
 )
 
 func init() {
@@ -16,11 +17,11 @@ func init() {
 	var formatter log.Formatter
 
 	if formatterType, ok := os.LookupEnv("FORMATTER_TYPE"); ok {
-		if formatterType == "JSON" {
+		if formatterType == "JSON" || formatterType == "json" {
 			formatter = &log.JSONFormatter{PrettyPrint: false}
 		}
 
-		if formatterType == "TEXT" {
+		if formatterType == "TEXT" || formatterType == "text" {
 			formatter = &log.TextFormatter{DisableColors: false}
 		}
 	}

@@ -2,17 +2,23 @@ package lambda
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"time"
+
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/acm"
 	acmTypes "github.com/aws/aws-sdk-go-v2/service/acm/types"
 	"github.com/go-acme/lego/v4/certificate"
 	"github.com/kvendingoldo/aws-letsencrypt-lambda/internal/cloud"
 	"github.com/kvendingoldo/aws-letsencrypt-lambda/internal/config"
+	"github.com/kvendingoldo/aws-letsencrypt-lambda/internal/types"
 	"github.com/kvendingoldo/aws-letsencrypt-lambda/internal/utils"
 	log "github.com/sirupsen/logrus"
-	"time"
+
+	"github.com/aws/aws-sdk-go-v2/service/secretsmanager"
+	secretsManagerTypes "github.com/aws/aws-sdk-go-v2/service/secretsmanager/types"
 )
 
 func getCertificateByDomainFromSlice(domain string, certificates *acm.ListCertificatesOutput) (acmTypes.CertificateSummary, error) {
@@ -64,7 +70,61 @@ func importCertificate(ctx context.Context, client *cloud.Client, arn *string, t
 		return err
 	}
 
-	log.Infof("Certificate has been sucessefully imported. Arn is %v", *output.CertificateArn)
+	log.Infof("Certificate has been successfully imported. Arn is %v", *output.CertificateArn)
+
+	return nil
+}
+
+func uploadToSecretManager(ctx context.Context, client *cloud.Client, domainName string, tlsCertificates *certificate.Resource) error {
+	secretName := domainName
+
+	// Convert the certificate resource to JSON
+	certData := types.SecretsManagerResource{
+		Domain:            domainName,
+		PrivateKey:        string(tlsCertificates.PrivateKey),
+		Certificate:       string(tlsCertificates.Certificate),
+		IssuerCertificate: string(tlsCertificates.IssuerCertificate),
+		CSR:               string(tlsCertificates.CSR),
+	}
+	certJSON, err := json.Marshal(certData)
+	if err != nil {
+		return fmt.Errorf("failed to marshal certificate resource: %w", err)
+	}
+
+	// Prepare the secret value
+	secretString := aws.String(string(certJSON))
+
+	// Check if the secret exists
+	_, err = client.SecretsManagerClient.DescribeSecret(ctx, &secretsmanager.DescribeSecretInput{
+		SecretId: aws.String(secretName),
+	})
+
+	if err != nil {
+		// If the secret doesn't exist, create it
+		var notFound *secretsManagerTypes.ResourceNotFoundException
+		if err != nil && !errors.As(err, &notFound) {
+			return fmt.Errorf("failed to describe secret: %w", err)
+		}
+
+		secret, err := client.SecretsManagerClient.CreateSecret(ctx, &secretsmanager.CreateSecretInput{
+			Name:         aws.String(secretName),
+			SecretString: secretString,
+		})
+		if err != nil {
+			return fmt.Errorf("failed to create secret: %w", err)
+		}
+		log.Infof("Secret created successfully. SecretId: %s", *secret.ARN)
+	} else {
+		// If the secret exists, update it
+		secret, err := client.SecretsManagerClient.UpdateSecret(ctx, &secretsmanager.UpdateSecretInput{
+			SecretId:     aws.String(secretName),
+			SecretString: secretString,
+		})
+		if err != nil {
+			return fmt.Errorf("failed to update secret: %w", err)
+		}
+		log.Infof("Secret updated successfully. SecretId: %s", *secret.ARN)
+	}
 
 	return nil
 }
@@ -121,6 +181,12 @@ func processCertificate(ctx context.Context, config config.Config, client *cloud
 		if err != nil {
 			return err
 		}
+
+		err = uploadToSecretManager(ctx, client, config.DomainName, tlsCertificates)
+		if err != nil {
+			return err
+		}
+
 	} else {
 		log.Infof("No re-import needed. It has to be done 10 days before expiration")
 	}
@@ -129,7 +195,7 @@ func processCertificate(ctx context.Context, config config.Config, client *cloud
 }
 
 func Execute(ctx context.Context, config config.Config) error {
-	client, err := cloud.New(ctx, config.ACMRegion, config.Route53Region)
+	client, err := cloud.New(ctx, config.ACMRegion, config.Route53Region, config.SecretsManagerRegion)
 	if err != nil {
 		//nolint:stylecheck
 		return fmt.Errorf("Could not create AWS client. Error: %w", err)

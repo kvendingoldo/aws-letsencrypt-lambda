@@ -1,6 +1,7 @@
 package types
 
 const (
-	IssueTypeDefault = "default"
-	IssueTypeForce   = "force"
+	IssueTypeDefault     = "default"
+	IssueTypeForce       = "force"
+	StoreCertInSMDefault = false
 )

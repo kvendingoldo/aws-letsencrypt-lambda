@@ -135,3 +135,36 @@ resource "aws_iam_role_policy_attachment" "route53" {
   role       = aws_iam_role.main[0].name
   policy_arn = aws_iam_policy.route53[0].arn
 }
+
+#
+# Secrets Manager policy
+#
+resource "aws_iam_policy" "secretmanager" {
+  count = var.create_iam_role && var.enable_storing_certs_in_sm ? 1 : 0
+
+  name        = format("%s-%s", var.blank_name, "secretsmanager")
+  path        = "/"
+  description = "IAM policy for working with secretsmanager from a lambda"
+
+  # TODO
+  policy = <<-POLICY
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": [
+        "secretsmanager:*"
+      ],
+      "Resource": "*",
+      "Effect": "Allow"
+    }
+  ]
+}
+POLICY
+}
+resource "aws_iam_role_policy_attachment" "secretsmanager" {
+  count = var.create_iam_role && var.enable_storing_certs_in_sm ? 1 : 0
+
+  role       = aws_iam_role.main[0].name
+  policy_arn = aws_iam_policy.secretsmanager[0].arn
+}

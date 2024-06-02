@@ -5,14 +5,16 @@ import (
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/acm"
 	"github.com/aws/aws-sdk-go-v2/service/route53"
+	"github.com/aws/aws-sdk-go-v2/service/secretsmanager"
 )
 
 type Client struct {
-	ACMClient     *acm.Client
-	Route53Client *route53.Client
+	ACMClient            *acm.Client
+	Route53Client        *route53.Client
+	SecretsManagerClient *secretsmanager.Client
 }
 
-func New(ctx context.Context, route53Region, acmRegion string) (*Client, error) {
+func New(ctx context.Context, route53Region, acmRegion, secretsManagerRegion string) (*Client, error) {
 	acmCfg, err := config.LoadDefaultConfig(ctx, config.WithRegion(acmRegion))
 	if err != nil {
 		return nil, err
@@ -23,8 +25,14 @@ func New(ctx context.Context, route53Region, acmRegion string) (*Client, error) 
 		return nil, err
 	}
 
+	secretsManagerCfg, err := config.LoadDefaultConfig(ctx, config.WithRegion(secretsManagerRegion))
+	if err != nil {
+		return nil, err
+	}
+
 	return &Client{
-		ACMClient:     acm.NewFromConfig(acmCfg),
-		Route53Client: route53.NewFromConfig(route53Cfg),
+		ACMClient:            acm.NewFromConfig(acmCfg),
+		Route53Client:        route53.NewFromConfig(route53Cfg),
+		SecretsManagerClient: secretsmanager.NewFromConfig(secretsManagerCfg),
 	}, nil
 }
