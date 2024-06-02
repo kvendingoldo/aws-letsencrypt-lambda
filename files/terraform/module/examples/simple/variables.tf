@@ -13,14 +13,14 @@ variable "ecr_proxy_access_token" {
 }
 
 variable "letsencrypt_lambda_cron_schedule" {
-  default = "rate(168 hours)"
+  default = "rate(1 minute)"
 }
 variable "letsencrypt_lambda_events" {
   default = [
     {
       "acmRegion" : "us-east-1",
       "route53Region" : "us-east-1",
-      "domainName" : "hackernoon1.referrs.me",
+      "domainName" : "hackernoon3.referrs.me",
       "acmeUrl" : "stage",
       "acmeEmail" : "alex.sharov@referrs.me",
       "reImportThreshold" : 100,

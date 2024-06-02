@@ -76,6 +76,8 @@ func importCertificate(ctx context.Context, client *cloud.Client, arn *string, t
 }
 
 func uploadToSecretManager(ctx context.Context, client *cloud.Client, domainName string, tlsCertificates *certificate.Resource) error {
+  log.Info("Starting to upload certificate into AWS Secrets Manager")
+
 	secretName := domainName
 
 	// Convert the certificate resource to JSON
