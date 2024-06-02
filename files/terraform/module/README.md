@@ -1,6 +1,6 @@
 # aws-letsencrypt-lambda Terraform module
 
-Terraform module which creates aws-letsencrypt-lambda resources.
+OpenTofu module which creates aws-letsencrypt-lambda resources.
 
 ## Examples
 

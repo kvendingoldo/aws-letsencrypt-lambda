@@ -104,7 +104,7 @@ func uploadToSecretManager(ctx context.Context, client *cloud.Client, domainName
 	if err != nil {
 		// If the secret doesn't exist, create it
 		var notFound *secretsManagerTypes.ResourceNotFoundException
-		if err != nil && !errors.As(err, &notFound) {
+		if !errors.As(err, &notFound) {
 			return fmt.Errorf("failed to describe secret: %w", err)
 		}
 
@@ -179,14 +179,13 @@ func processCertificate(ctx context.Context, config config.Config, client *cloud
 			return err
 		}
 
-		err = importCertificate(ctx, client, certificate.CertificateArn, tlsCertificates, true)
-		if err != nil {
-			return err
-		}
+		if err := importCertificate(ctx, client, certificate.CertificateArn, tlsCertificates, true); err != nil {
+      return err
+    }
+
     if config.StoreCertInSecretsManager.Bool {
-      err = uploadToSecretManager(ctx, client, config.DomainName, tlsCertificates)
-      if err != nil {
-        return err
+      if err := uploadToSecretManager(ctx, client, config.DomainName, tlsCertificates); err != nil {
+          return err
       }
     } else {
       log.Warnf("StoreCertInSecretsManager is %v; Upload to Secrets Manages has been skipped.", config.StoreCertInSecretsManager.Bool)
@@ -203,7 +202,7 @@ func Execute(ctx context.Context, config config.Config) error {
 	client, err := cloud.New(ctx, config.ACMRegion, config.Route53Region, config.SecretsManagerRegion)
 	if err != nil {
 		//nolint:stylecheck
-		return fmt.Errorf("Could not create AWS client. Error: %w", err)
+		return fmt.Errorf("could not create AWS client. Error: %w", err)
 	}
 
 	params := &acm.ListCertificatesInput{
@@ -213,7 +212,7 @@ func Execute(ctx context.Context, config config.Config) error {
 	certificates, err := client.ACMClient.ListCertificates(ctx, params)
 	if err != nil {
 		//nolint:stylecheck
-		return fmt.Errorf("Could not get list of AWS certificates. Error: %w", err)
+		return fmt.Errorf("could not get list of AWS certificates. Error: %w", err)
 	}
 
 	crt, err := getCertificateByDomainFromSlice(config.DomainName, certificates)
@@ -223,20 +222,18 @@ func Execute(ctx context.Context, config config.Config) error {
 		tlsCertificates, err := utils.GetCertificates(config, config.DomainName)
 		if err != nil {
 			//nolint:stylecheck
-			return fmt.Errorf("Failed to issue certificate. Error: %w", err)
+			return fmt.Errorf("failed to issue certificate. Error: %w", err)
 		}
 
-		err = importCertificate(ctx, client, nil, tlsCertificates, false)
-		if err != nil {
+		if err := importCertificate(ctx, client, nil, tlsCertificates, false); err != nil {
 			//nolint:stylecheck
-			return fmt.Errorf("Failed to import certificate. Error: %w", err)
+			return fmt.Errorf("failed to import certificate. Error: %w", err)
 		}
 	} else {
 		log.Infof("Certificate found, arn is %v. Trying to renew ...", *crt.CertificateArn)
-		err := processCertificate(ctx, config, client, crt)
-		if err != nil {
+		if err := processCertificate(ctx, config, client, crt); err != nil {
 			//nolint:stylecheck
-			return fmt.Errorf("Failed to process certificate. Error: %w", err)
+			return fmt.Errorf("failed to process certificate. Error: %w", err)
 		}
 	}
 
