@@ -11,7 +11,7 @@ variable "certs_renew_lambda_events_use2" {
       acmeEmail : "alex.sharov@referrs.me",
       reImportThreshold : 10,
       issueType : "default",
-      storeCertInSM: true
+      storeCertInSM : true
     },
     {
       domainName : "dev.referrs.me",
@@ -19,7 +19,7 @@ variable "certs_renew_lambda_events_use2" {
       acmeEmail : "alex.sharov@referrs.me",
       reImportThreshold : 10,
       issueType : "default",
-      storeCertInSM: true
+      storeCertInSM : true
     }
   ]
 }

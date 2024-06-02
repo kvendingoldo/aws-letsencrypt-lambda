@@ -17,7 +17,7 @@ variable "letsencrypt_lambda_events" {
       "acmeEmail" : "<EMAIL_1>",
       "reImportThreshold" : 10,
       "issueType" : "force",
-      "storeCertInSM": false
+      "storeCertInSM" : false
     },
     {
       "acmRegion" : "us-east-2",
@@ -27,7 +27,7 @@ variable "letsencrypt_lambda_events" {
       "acmeEmail" : "<EMAIL_2>",
       "reImportThreshold" : 30,
       "issueType" : "default",
-      "storeCertInSM": "true"
+      "storeCertInSM" : "true"
     }
   ]
 }

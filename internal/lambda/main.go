@@ -76,7 +76,7 @@ func importCertificate(ctx context.Context, client *cloud.Client, arn *string, t
 }
 
 func uploadToSecretManager(ctx context.Context, client *cloud.Client, domainName string, tlsCertificates *certificate.Resource) error {
-  log.Info("Starting to upload certificate into AWS Secrets Manager")
+	log.Info("Starting to upload certificate into AWS Secrets Manager")
 
 	secretName := domainName
 
@@ -180,16 +180,16 @@ func processCertificate(ctx context.Context, config config.Config, client *cloud
 		}
 
 		if err := importCertificate(ctx, client, certificate.CertificateArn, tlsCertificates, true); err != nil {
-      return err
-    }
+			return err
+		}
 
-    if config.StoreCertInSecretsManager.Bool {
-      if err := uploadToSecretManager(ctx, client, config.DomainName, tlsCertificates); err != nil {
-          return err
-      }
-    } else {
-      log.Warnf("StoreCertInSecretsManager is %v; Upload to Secrets Manages has been skipped.", config.StoreCertInSecretsManager.Bool)
-    }
+		if config.StoreCertInSecretsManager.Bool {
+			if err := uploadToSecretManager(ctx, client, config.DomainName, tlsCertificates); err != nil {
+				return err
+			}
+		} else {
+			log.Warnf("StoreCertInSecretsManager is %v; Upload to Secrets Manages has been skipped.", config.StoreCertInSecretsManager.Bool)
+		}
 
 	} else {
 		log.Infof("No re-import needed. It has to be done 10 days before expiration")

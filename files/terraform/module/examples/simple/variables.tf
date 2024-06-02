@@ -20,7 +20,7 @@ variable "letsencrypt_lambda_events" {
     {
       "acmRegion" : "us-east-1",
       "route53Region" : "us-east-1",
-      "domainName" : "hackernoon3.referrs.me",
+      "domainName" : "hackernoon.referrs.me",
       "acmeUrl" : "stage",
       "acmeEmail" : "alex.sharov@referrs.me",
       "reImportThreshold" : 100,

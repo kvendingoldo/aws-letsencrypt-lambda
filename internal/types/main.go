@@ -15,12 +15,12 @@ type Event struct {
 	Route53Region        string `json:"route53Region"`
 	SecretsManagerRegion string `json:"secretsManagerRegion"`
 
-	DomainName        string    `json:"domainName"`
-	ReImportThreshold null.Int  `json:"reImportThreshold"`
-	AcmeURL           string    `json:"acmeUrl"`
-	AcmeEmail         string    `json:"acmeEmail"`
-	IssueType         string    `json:"issueType"`
-	StoreCertInSecretsManager     null.Bool `json:"storeCertInSecretsManager"`
+	DomainName                string    `json:"domainName"`
+	ReImportThreshold         null.Int  `json:"reImportThreshold"`
+	AcmeURL                   string    `json:"acmeUrl"`
+	AcmeEmail                 string    `json:"acmeEmail"`
+	IssueType                 string    `json:"issueType"`
+	StoreCertInSecretsManager null.Bool `json:"storeCertInSecretsManager"`
 }
 
 type SecretsManagerResource struct {
