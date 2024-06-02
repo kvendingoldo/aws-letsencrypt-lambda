@@ -183,7 +183,7 @@ func processCertificate(ctx context.Context, config config.Config, client *cloud
 		if err != nil {
 			return err
 		}
-    if config.StoreCertInSM.Bool {
+    if config.StoreCertInSecretsManager.Bool {
       err = uploadToSecretManager(ctx, client, config.DomainName, tlsCertificates)
       if err != nil {
         return err

@@ -1,5 +1,5 @@
 package lambda
 
 const (
-	lambdaAwsTag = "aws-letsencrypt-lambda"
+	lambdaAwsTag = "kvendingoldo/aws-letsencrypt-lambda"
 )

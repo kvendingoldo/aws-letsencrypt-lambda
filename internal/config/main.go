@@ -21,7 +21,7 @@ type Config struct {
 	AcmeEmail         string
 	AcmeURL           string
 	IssueType         string
-	StoreCertInSM     null.Bool
+	StoreCertInSecretsManager     null.Bool
 }
 
 //nolint:unparam
@@ -170,25 +170,25 @@ func New(eventRaw interface{}) (*Config, error) {
 	}
 
 	// Process StoreCertInSM
-	if storeCertInSM := getEnv("STORE_CERT_IN_SM", ""); storeCertInSM != "" {
+	if storeCertInSM := getEnv("STORE_CERT_IN_SECRETSMANAGER", ""); storeCertInSM != "" {
 		storeCertInSMValue, err := strconv.ParseBool(storeCertInSM)
 		if err != nil {
 			//nolint:stylecheck
-			return nil, fmt.Errorf("Could not parse 'STORE_CERT_IN_SM' variable. Error: %w", err)
+			return nil, fmt.Errorf("could not parse 'STORE_CERT_IN_SECRETSMANAGER' variable. Error: %w", err)
 		}
 
-		config.StoreCertInSM = null.NewBool(storeCertInSMValue, true)
+		config.StoreCertInSecretsManager = null.NewBool(storeCertInSMValue, true)
 	} else {
-		log.Warn("Environment variable 'STORE_CERT_IN_SM' is empty")
+		log.Warn("Environment variable 'STORE_CERT_IN_SECRETSMANAGER' is empty")
 	}
 	if getFromEvent {
-		if event.StoreCertInSM.Valid {
-			config.StoreCertInSM = event.StoreCertInSM
+		if event.StoreCertInSecretsManager.Valid {
+			config.StoreCertInSecretsManager = event.StoreCertInSecretsManager
 		}
 	}
-	if !config.StoreCertInSM.Valid {
-		log.Warn("storeCertInSM is not specified; Storing certificated in AWS Secret managed won't be enabled")
-		config.StoreCertInSM = null.NewBool(false, true)
+	if !config.StoreCertInSecretsManager.Valid {
+		log.Warn("storeCertInSecretsManager is not specified; Certificate won't be stored in AWS Secrets manager.")
+		config.StoreCertInSecretsManager = null.NewBool(false, true)
 	}
 
 	return &config, nil

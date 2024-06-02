@@ -10,6 +10,7 @@ linters:
   enable-all: true
   disable-all: false
   disable:
+    - testpackage # testpackage is a golang linter that makes you use a separate _test package.
     - wsl
     - wrapcheck
     - goerr113
@@ -27,7 +28,7 @@ linters:
     - ifshort # deprecated
     - maligned # deprecated
     - golint # deprecated
-    - interfacer  #deprecated
+    - interfacer #deprecated
     - scopelint # deprecated
     - exhaustivestruct # deprecated
 
@@ -35,4 +36,10 @@ linters-settings:
   gosimple:
     checks:
       - all
-      - '-S1024' # disable the rule S1024
+      - "-S1024" # disable the rule S1024
+  depguard:
+    rules:
+      main:
+        deny:
+          - pkg: io/ioutil
+            desc: "replaced by io and os packages since Go 1.16: https://tip.golang.org/doc/go1"

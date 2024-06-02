@@ -13,7 +13,7 @@ variable "ecr_proxy_access_token" {
 }
 
 variable "letsencrypt_lambda_cron_schedule" {
-  default = "rate(1 minute)"
+  default = "rate(168 hours)"
 }
 variable "letsencrypt_lambda_events" {
   default = [
@@ -25,7 +25,7 @@ variable "letsencrypt_lambda_events" {
       "acmeEmail" : "alex.sharov@referrs.me",
       "reImportThreshold" : 100,
       "issueType" : "default",
-      "storeCertInSM" : true
+      "storeCertInSecretsManager" : true
     }
   ]
 }

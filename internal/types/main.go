@@ -20,7 +20,7 @@ type Event struct {
 	AcmeURL           string    `json:"acmeUrl"`
 	AcmeEmail         string    `json:"acmeEmail"`
 	IssueType         string    `json:"issueType"`
-	StoreCertInSM     null.Bool `json:"storeCertInSm"`
+	StoreCertInSecretsManager     null.Bool `json:"storeCertInSecretsManager"`
 }
 
 type SecretsManagerResource struct {
