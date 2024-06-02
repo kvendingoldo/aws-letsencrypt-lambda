@@ -181,11 +181,12 @@ func processCertificate(ctx context.Context, config config.Config, client *cloud
 		if err != nil {
 			return err
 		}
-
-		err = uploadToSecretManager(ctx, client, config.DomainName, tlsCertificates)
-		if err != nil {
-			return err
-		}
+    if config.StoreCertInSM.Bool {
+      err = uploadToSecretManager(ctx, client, config.DomainName, tlsCertificates)
+      if err != nil {
+        return err
+      }
+    }
 
 	} else {
 		log.Infof("No re-import needed. It has to be done 10 days before expiration")

@@ -81,7 +81,7 @@ variable "ecr_proxy_upstream_registry_url" {
 variable "ecr_proxy_repository_prefix" {
   type        = string
   description = "The repository name prefix to use when caching images from the source registry."
-  default     = "proxy-public"
+  default     = "ghcr-io-proxy"
 }
 
 variable "ecr_proxy_username" {
@@ -137,16 +137,6 @@ variable "cron_schedule" {
 #
 variable "cloudwatch_log_group_retention" {
   type        = number
-  description = "Number of days to retain log events in the specified cloudwarch log group"
+  description = "Number of days to retain log events in the specified cloudwatch log group"
   default     = 7
-}
-
-
-#
-# Secret manager
-#
-variable "enable_storing_certs_in_sm" {
-  type        = bool
-  description = "If true, Lambda will store certificate in Secrets Manager as well as in Certificate Manager"
-  default     = false
 }
