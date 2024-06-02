@@ -52,7 +52,7 @@ variable "environ" {
 variable "public_image" {
   type        = string
   description = "GHCR image containing the function's deployment package"
-  default     = "kvendingoldo/aws-letsencrypt-lambda:rc-0.21.0"
+  default     = "kvendingoldo/aws-letsencrypt-lambda:rc-0.22.0"
 }
 variable "ecr_image_uri" {
   type        = string
@@ -65,7 +65,7 @@ variable "ecr_image_uri" {
 #
 variable "ecr_proxy_enabled" {
   type        = bool
-  description = "If true, ECR proxy for DockerHub will be created"
+  description = "If true, ECR proxy for ghcr.io will be created"
   default     = true
 }
 variable "ecr_proxy_upstream_registry_url" {
@@ -74,8 +74,8 @@ variable "ecr_proxy_upstream_registry_url" {
   default     = "ghcr.io"
 
   validation {
-    condition     = can(regex("^((public\\.ecr\\.aws)|(registry-1\\.docker\\.io)|(registry\\.k8s\\.io)|(quay\\.io)|(ghcr\\.io)|(\\w+\\.azurecr\\.io))$", var.ecr_proxy_upstream_registry_url))
-    error_message = "Invalid container registry URL. It must be one of: public.ecr.aws, registry-1.docker.io, registry.k8s.io, quay.io, ghcr.io, {custom}.azurecr.io"
+    condition     = can(regex("^((ghcr\\.io))$", var.ecr_proxy_upstream_registry_url))
+    error_message = "Invalid container registry URL. It must be ghcr.io."
   }
 }
 variable "ecr_proxy_repository_prefix" {

@@ -16,7 +16,8 @@ variable "letsencrypt_lambda_events" {
       "acmeUrl" : "stage",
       "acmeEmail" : "<EMAIL_1>",
       "reImportThreshold" : 10,
-      "issueType" : "force"
+      "issueType" : "force",
+      "storeCertInSM": false
     },
     {
       "acmRegion" : "us-east-2",
@@ -25,7 +26,8 @@ variable "letsencrypt_lambda_events" {
       "acmeUrl" : "prod",
       "acmeEmail" : "<EMAIL_2>",
       "reImportThreshold" : 30,
-      "issueType" : "default"
+      "issueType" : "default",
+      "storeCertInSM": "true"
     }
   ]
 }

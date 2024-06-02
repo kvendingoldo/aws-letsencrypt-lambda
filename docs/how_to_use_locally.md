@@ -11,6 +11,7 @@ export ACME_URL="stage"
 export ACME_EMAIL="mytestemail@gmail.com"
 export REIMPORT_THRESHOLD=10
 export ISSUE_TYPE="default"
+export STORE_CERT_IN_SM="true"
 ```
 
 2. Run lambda locally

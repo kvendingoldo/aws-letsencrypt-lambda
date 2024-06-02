@@ -4,7 +4,7 @@
 
 AWS Lambda does not provide an ability to use public docker images easily. To use the Terraform automation you have two options:
 
-1. Use ECR image pull cache (**preferred way**) 
+1. Use ECR image pull cache (**preferred way**)
    1. Set Terraform variable `ecr_proxy_enabled=true`
    2. Set Terraform variable `ecr_proxy_upstream_registry_url` to `registry-1.docker.io` or `ghcr.io`.
    3. Create Access Token for GitHub Package registry or Docker Hub.
@@ -14,7 +14,7 @@ AWS Lambda does not provide an ability to use public docker images easily. To us
 2. Use your own AWS ECR
    1. Pull kvendingoldo's image from [Docker Hub](https://hub.docker.com/repository/docker/kvendingoldo/aws-letsencrypt-lambda) / [GitHub registry](https://github.com/kvendingoldo?tab=packages&repo_name=aws-letsencrypt-lambda).
    2. Create your own private AWS ECR repository
-   3. Retag pulled image and push it to your private ECR repository. 
+   3. Retag pulled image and push it to your private ECR repository.
    4. Change `var.image` to your image URL. E.g.: `image = "004867756392.dkr.ecr.us-east-1.amazonaws.com/aws_letsencrypt_lambda:0.14.0"`
 
 
@@ -53,7 +53,8 @@ variable "letsencrypt_lambda_events" {
       "acmeUrl" : "stage",
       "acmeEmail" : "<EMAIL_1>",
       "reImportThreshold" : 10,
-      "issueType" : "force"
+      "issueType" : "force",
+      "storeCertInSM": "false"
     },
     {
       "acmRegion" : "us-east-2",
@@ -62,7 +63,8 @@ variable "letsencrypt_lambda_events" {
       "acmeUrl" : "prod",
       "acmeEmail" : "<EMAIL_2>",
       "reImportThreshold" : 30,
-      "issueType" : "default"
+      "issueType" : "default",
+      "storeCertInSM": "true"
     }
   ]
 }

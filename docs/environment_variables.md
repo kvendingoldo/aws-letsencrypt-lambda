@@ -35,3 +35,7 @@
 * REIMPORT_THRESHOLD
     * Description: If TTL of cert == REIMPORT_THRESHOLD then cert will be renewed
     * Possible values: *any int > 0*
+
+* STORE_CERT_IN_SM
+    * Description: If true, Lambda will store certificate in Secrets Manager as well as in Certificate Manager
+    * Possible values: "true" | "false"

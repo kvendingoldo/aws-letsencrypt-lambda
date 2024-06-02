@@ -10,14 +10,16 @@ variable "certs_renew_lambda_events_use2" {
       acmeUrl : "prod",
       acmeEmail : "alex.sharov@referrs.me",
       reImportThreshold : 10,
-      issueType : "default"
+      issueType : "default",
+      storeCertInSM: true
     },
     {
       domainName : "dev.referrs.me",
       acmeUrl : "prod",
       acmeEmail : "alex.sharov@referrs.me",
       reImportThreshold : 10,
-      issueType : "default"
+      issueType : "default",
+      storeCertInSM: true
     }
   ]
 }

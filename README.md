@@ -13,5 +13,5 @@ This repository represents a straightforward Lambda function for AWS that uses C
 You can review the following documents on the Lambda to learn more:
 * [How to use the Lambda inside of AWS](docs/how_to_use_aws.md)
 * [How to use the Lambda locally](docs/how_to_use_locally.md)
-* [How to use Terraform automation](docs/how_to_use_terraform.md)
+* [How to use OpenTofu automation](docs/how_to_use_opentofu.md)
 * [Labmda's environment variables](docs/environment_variables.md)

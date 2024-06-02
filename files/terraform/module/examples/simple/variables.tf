@@ -3,6 +3,15 @@ variable "tags" {
     testTagKey : "testTagValue"
   }
 }
+
+variable "ecr_proxy_username" {
+  default = "kvendingoldo"
+}
+
+variable "ecr_proxy_access_token" {
+  default = "ghp_xxx"
+}
+
 variable "letsencrypt_lambda_cron_schedule" {
   default = "rate(168 hours)"
 }
@@ -14,8 +23,9 @@ variable "letsencrypt_lambda_events" {
       "domainName" : "hackernoon.referrs.me",
       "acmeUrl" : "stage",
       "acmeEmail" : "alex.sharov@referrs.me",
-      "reImportThreshold" : 10,
-      "issueType" : "default"
+      "reImportThreshold" : 100,
+      "issueType" : "default",
+      "storeCertInSM" : true
     }
   ]
 }
