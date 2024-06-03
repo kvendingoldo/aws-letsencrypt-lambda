@@ -37,6 +37,7 @@ func showCertificateInfo(certificate acmTypes.CertificateDetail) {
 	log.Infof("Certificate in use by %v", certificate.InUseBy)
 
 	notAfterDate := certificate.NotAfter
+	//nolint:mnd
 	certificateDaysLeft := int(notAfterDate.Sub(time.Now()).Hours() / 24)
 	log.Infof("Certificate valid until %v (%v days left)", notAfterDate, certificateDaysLeft)
 }
@@ -166,6 +167,7 @@ func processCertificate(ctx context.Context, config config.Config, client *cloud
 	}
 
 	showCertificateInfo(*info.Certificate)
+	//nolint:mnd
 	certificateDaysLeft := int64(info.Certificate.NotAfter.Sub(time.Now()).Hours() / 24)
 
 	//nolint:gocritic
@@ -207,7 +209,8 @@ func Execute(ctx context.Context, config config.Config) error {
 
 	params := &acm.ListCertificatesInput{
 		CertificateStatuses: []acmTypes.CertificateStatus{acmTypes.CertificateStatusIssued},
-		MaxItems:            aws.Int32(100),
+		//nolint:mnd
+		MaxItems: aws.Int32(100),
 	}
 	certificates, err := client.ACMClient.ListCertificates(ctx, params)
 	if err != nil {

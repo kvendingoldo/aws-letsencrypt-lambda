@@ -1,6 +1,7 @@
 package config
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"strconv"
@@ -34,6 +35,7 @@ func getEnv(key, fallback string) string {
 	return fallback
 }
 
+//nolint:gocyclo
 func New(eventRaw interface{}) (*Config, error) {
 	var config = Config{}
 	var getFromEvent bool
@@ -61,7 +63,7 @@ func New(eventRaw interface{}) (*Config, error) {
 		}
 	}
 	if config.AWSRegion == "" {
-		return nil, fmt.Errorf("AWSRegion is empty; Configure it via 'AWS_REGION' env variable OR pass in event body")
+		return nil, errors.New("AWSRegion is empty; Configure it via 'AWS_REGION' env variable OR pass in event body")
 	}
 
 	// Process DomainName
@@ -78,7 +80,7 @@ func New(eventRaw interface{}) (*Config, error) {
 		}
 	}
 	if config.DomainName == "" {
-		return nil, fmt.Errorf("DomainName is empty; Configure it via 'DOMAIN_NAME' env variable OR pass in event body")
+		return nil, errors.New("DomainName is empty; Configure it via 'DOMAIN_NAME' env variable OR pass in event body")
 	}
 
 	// Process ReImportThreshold
@@ -100,7 +102,7 @@ func New(eventRaw interface{}) (*Config, error) {
 		}
 	}
 	if config.ReImportThreshold == 0 {
-		return nil, fmt.Errorf("ReImportThreshold == 0; Configure non-zero value via 'REIMPORT_THRESHOLD' env variable OR pass in event body")
+		return nil, errors.New("ReImportThreshold == 0; Configure non-zero value via 'REIMPORT_THRESHOLD' env variable OR pass in event body")
 	}
 
 	// Process AcmeEmail
@@ -174,7 +176,6 @@ func New(eventRaw interface{}) (*Config, error) {
 	if storeCertInSM := getEnv("STORE_CERT_IN_SECRETSMANAGER", ""); storeCertInSM != "" {
 		storeCertInSMValue, err := strconv.ParseBool(storeCertInSM)
 		if err != nil {
-			//nolint:stylecheck
 			return nil, fmt.Errorf("could not parse 'STORE_CERT_IN_SECRETSMANAGER' variable. Error: %w", err)
 		}
 

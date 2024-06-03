@@ -59,6 +59,7 @@ func GetCertificates(config config.Config, domainName string) (*certificate.Reso
 
 	// NOTE: Set up route53 dns-01 challenge provider
 	route53Config := route53.NewDefaultConfig()
+	//nolint:mnd
 	route53Config.PropagationTimeout = time.Second * 300
 	route53Provider, err := route53.NewDNSProviderConfig(route53Config)
 	if err != nil {
