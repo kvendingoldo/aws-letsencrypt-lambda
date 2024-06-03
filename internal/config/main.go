@@ -119,7 +119,7 @@ func New(eventRaw interface{}) (*Config, error) {
 		}
 	}
 	if config.AcmeEmail == "" {
-		return nil, fmt.Errorf("AcmeEmail is empty; Configure it via 'ACME_EMAIL' env variable OR pass in event body")
+		return nil, errors.New("AcmeEmail is empty; Configure it via 'ACME_EMAIL' env variable OR pass in event body")
 	}
 
 	// Process AcmeURL

@@ -192,7 +192,6 @@ func processCertificate(ctx context.Context, config config.Config, client *cloud
 		} else {
 			log.Warnf("StoreCertInSecretsManager is %v; Upload to Secrets Manages has been skipped.", config.StoreCertInSecretsManager.Bool)
 		}
-
 	} else {
 		log.Infof("No re-import needed. It has to be done 10 days before expiration")
 	}
@@ -203,7 +202,6 @@ func processCertificate(ctx context.Context, config config.Config, client *cloud
 func Execute(ctx context.Context, config config.Config) error {
 	client, err := cloud.New(ctx, config.ACMRegion, config.Route53Region, config.SecretsManagerRegion)
 	if err != nil {
-		//nolint:stylecheck
 		return fmt.Errorf("could not create AWS client. Error: %w", err)
 	}
 
@@ -214,7 +212,6 @@ func Execute(ctx context.Context, config config.Config) error {
 	}
 	certificates, err := client.ACMClient.ListCertificates(ctx, params)
 	if err != nil {
-		//nolint:stylecheck
 		return fmt.Errorf("could not get list of AWS certificates. Error: %w", err)
 	}
 
@@ -224,7 +221,6 @@ func Execute(ctx context.Context, config config.Config) error {
 
 		tlsCertificates, err := utils.GetCertificates(config, config.DomainName)
 		if err != nil {
-			//nolint:stylecheck
 			return fmt.Errorf("failed to issue certificate. Error: %w", err)
 		}
 
