@@ -225,13 +225,11 @@ func Execute(ctx context.Context, config config.Config) error {
 		}
 
 		if err := importCertificate(ctx, client, nil, tlsCertificates, false); err != nil {
-			//nolint:stylecheck
 			return fmt.Errorf("failed to import certificate. Error: %w", err)
 		}
 	} else {
 		log.Infof("Certificate found, arn is %v. Trying to renew ...", *crt.CertificateArn)
 		if err := processCertificate(ctx, config, client, crt); err != nil {
-			//nolint:stylecheck
 			return fmt.Errorf("failed to process certificate. Error: %w", err)
 		}
 	}

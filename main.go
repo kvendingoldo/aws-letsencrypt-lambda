@@ -84,9 +84,8 @@ func main() {
 			if err != nil {
 				log.Errorf("Lambda has been failed. Error: %s", err)
 				os.Exit(1)
-			} else {
-				log.Info("Lambda has been completed")
 			}
+			log.Info("Lambda has been completed")
 		} else if mode == "cloud" {
 			awsLambda.Start(Handler)
 		}
