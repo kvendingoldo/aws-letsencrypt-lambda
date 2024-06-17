@@ -30,7 +30,7 @@ jobs:
       -
         name: Set application version
         id: set_version
-        uses: kvendingoldo/semver-action@v1.19
+        uses: kvendingoldo/semver-action@v1.20
         with:
           primary_branch: main
           enable_github_releases: true
